@@ -111,12 +111,17 @@ pre {
 }
 
 .photo__options {
+    position: relative;
     text-align: center;
 }
 
 .photo__options .remove {
     text-decoration: none;
-    color: #444;
+    color: #DDDDDD;
+    position: absolute;
+    right: 17px;
+    top: -35px;
+    font-size: 18px;
 }
 
 .photo__options .remove:hover {
@@ -202,10 +207,13 @@ pre {
 
 
 /* EMPTY */
-
+.photo--empty .photo__options {
+    display: none;
+}
 .photo--empty .message.is-empty {
     display: inline-block;
 }
+
 
 .photo--empty .photo__circle:hover {
     background: #268eff;
@@ -283,4 +291,24 @@ pre {
 .profile.is-dragover .message.is-wrong-file-type,
 .profile.is-dragover .message.is-wrong-image-size {
     display: none;
+}
+
+/* UPLOAD TYPE STATE */
+
+.upload--advanced,.upload--simple {
+    display: none;
+}
+
+.is-advanced-upload .upload--advanced{
+    display: block;
+}
+.is-advanced-upload .upload--simple {
+    display: none;
+}
+
+.is-simple-upload .upload--advanced{
+    display: none;
+}
+.is-simple-upload .upload--simple {
+    display: block;
 }

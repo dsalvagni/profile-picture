@@ -98,6 +98,11 @@
             self.model = model;
         }
 
+        function isAdvancedUpload() {
+            var div = document.createElement('div');
+            return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
+        };
+
         /**
          * Load the image info an set image source
          */
@@ -108,21 +113,22 @@
             self.photoImg.attr('src', imageUrl)
                 .removeClass('hide')
                 .on('load', function () {
-                    if(this.width < self.options.image.minWidth || 
-                      this.height < self.options.image.minHeight) {
-                      self.photoArea.addClass('photo--error--image-size photo--empty');
-                      setModel({});
+                    if (this.width < self.options.image.minWidth ||
+                        this.height < self.options.image.minHeight) {
+                        self.photoArea.addClass('photo--error--image-size photo--empty');
+                        setModel({});
 
-                      /**
-                     * Call the onError callback
-                     */
-                    if (typeof self.defaults.onError === 'function') {
-                        self.defaults.onError('image-size');
-                    }
-                      return;
+                        /**
+                       * Call the onError callback
+                       */
+                        if (typeof self.defaults.onError === 'function') {
+                            self.defaults.onError('image-size');
+                        }
+                        return;
                     } else {
                         self.photoArea.removeClass('photo--error--image-size');
                     }
+                    self.photoArea.removeClass('photo--empty photo--error--file-type photo--loading');
                     self.model.originalHeight = this.height;
                     self.model.originalWidth = this.width;
                     self.model.height = this.height;
@@ -248,6 +254,12 @@
                 self.element.addClass('photo--empty');
             }
 
+            if(isAdvancedUpload) {
+                self.element.addClass('is-advanced-upload');
+            } else {
+                self.element.addClass('is-simple-upload');
+            }
+
             self.options = $.extend(self.defaults, options);
 
             registerDropZoneEvents();
@@ -276,23 +288,18 @@
                     return;
                 }
 
-                
+
 
                 var reader;
                 reader = new FileReader();
-                self.photoImg.addClass('hide');
-                self.photoLoading.removeClass('hide');
-                reader.onloadstart = function() {
+                reader.onloadstart = function () {
                     self.photoArea.addClass('photo--loading');
                 }
                 reader.onloadend = function (data) {
                     self.photoImg.css({ left: 0, top: 0 });
                     loadImage(data.target.result);
-                    self.photoLoading.addClass('hide');
-                    self.photoOptions.removeClass('hide');
-                    self.photoArea.removeClass('photo--empty photo--error--file-type photo--loading');
                 }
-                reader.onerror = function() {
+                reader.onerror = function () {
                     self.photoArea.addClass('photo--error');
                     /**
                      * Call the onError callback
@@ -307,6 +314,7 @@
             self.element.on('drag dragstart dragend dragover dragenter dragleave drop', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
+                e.originalEvent.dataTransfer.dropEffect = 'copy';
             });
 
             self.element.on('dragend dragleave drop', function (e) {
@@ -355,8 +363,16 @@
 
             self.photoImg.on("mousedown", function (e) {
                 $target = $(e.target);
-                x = e.offsetX;
-                y = e.offsetY;
+                /**
+                 * Firefox
+                 */
+                if(e.offsetX==undefined){
+                    x = e.pageX-$(this).offset().left;
+                    y = e.pageY-$(this).offset().top;
+                }else{
+                    x = e.offsetX;
+                    y = e.offsetY;
+                };
 
             });
 
@@ -495,13 +511,13 @@
     }
 })(window, jQuery);
 
-var p =new profilePicture('.profile', 'http://leitoresdepressivos.com/wp-content/uploads/2013/11/Douglas-Adams.jpg',
+var p = new profilePicture('.profile', 'http://leitoresdepressivos.com/wp-content/uploads/2013/11/Douglas-Adams.jpg',
     {
         onLoad: printOutput,
         onChange: printOutput,
         onRemove: printOutput,
-        onError: function(type) {
-            console.log('Error type: '+type);        
+        onError: function (type) {
+            console.log('Error type: ' + type);
         }
     });
 
