@@ -96,6 +96,10 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
     pp.getData();
 ```
 
+## Dependencies
+[jQuery](https://jquery.com/) and [FontAwesome*](http://fontawesome.io/)
+*You can use other icon gallery as well.
+
 ## Known issues
 - In older versions of Microsoft Edge the "drop files" feature doesn't work as expected.
   [Bug link](https://connect.microsoft.com/IE/feedback/details/1544800/ms-edge-drop-files-from-explorer-to-browser-does-not-work-as-expected)
