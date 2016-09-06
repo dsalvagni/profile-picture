@@ -17,8 +17,10 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 
 #### initialValue
 > Slider's handler initial position
+
 #### minValue
 > When the slider's handles is on its minimum position
+
 #### maxValue
 > When the slider's handles is on its maxixum position
 
@@ -26,14 +28,19 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 
 #### minWidth
 > Set the minimum image's width size acceptable
+
 #### minHeight
 > Set the minimum image's height size acceptable
+
 #### originalWidth
 > Define the original image's width
+
 #### originalHeight
 > Define the original image's height
+
 #### originalLeft
 > Define the original image's left offset
+
 #### originalTop
 > Define the original image's top offset
 
