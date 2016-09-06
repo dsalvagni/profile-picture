@@ -1,0 +1,253 @@
+/* DEMO PURPOSES ONLY */
+
+* {
+    box-sizing: border-box;
+}
+
+.profile {
+    float: left;
+}
+
+h1 {
+    text-align: center;
+}
+
+.hide {
+    display: none !important;
+}
+
+.photo__circle img {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.profile {
+    position: relative;
+    font-family: 'HelveticaNeueLTPro-Roman', sans-serif;
+    font-size: 85%;
+    width: 300px;
+}
+
+.slider {
+    position: relative;
+    width: 90%;
+    left: 5%;
+    height: 30px;
+    z-index: 1;
+    padding: 0 30px;
+}
+.slider.slider--minValue::before,.slider.slider--maxValue::after {
+    color: #F8F8F8;
+}
+.slider::after {
+    font-size: 18px;
+    right: 0px;
+    top: 8px;
+}
+
+.slider::before {
+    font-size: 14px;
+    left: 2px;
+    top: 8px;
+}
+
+.slider::before,
+.slider::after {
+    position: absolute;
+    content: "\f03e";
+    display: block;
+    font-family: 'FontAwesome';
+    color: #AAAAAA;
+}
+.slider__area {
+    position: relative;
+}
+.slider__line {
+    width: 100%;
+    height: 1px;
+    position: relative;
+    top: 15px;
+    background: #EEEEEE;
+    z-index: 2;
+}
+
+.slider__handler {
+    display: block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #EEEEEE;
+    border: 1px solid #DDDDDD;
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    margin-left: -10px;
+    z-index: 3;
+}
+
+.slider__handler:hover {
+    border-color: #C1C1C1;
+}
+.slider__handler:focus {
+    border-color: #268EFF;
+    box-shadow: 0 0 1px 0px #268EFF;
+}
+
+.photo {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.photo input[type=file] {
+    display: none;
+}
+
+.photo__options {
+    text-align: center;
+}
+
+.photo__options .remove {
+    text-decoration: none;
+    color: #444;
+}
+
+.photo__options .remove:hover {
+    color: #000;
+}
+
+.photo__circle {
+    display: inline-block;
+    width: 160px;
+    height: 160px;
+    border: 1px solid #e2e2e2;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    cursor: move;
+}
+
+
+.photo__circle img {
+    position: relative;
+}
+
+.photo__circle .message {
+    position: absolute;
+    left: 5px;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-block;
+    color: #268eff;
+    z-index: 3;
+}
+
+.photo__circle .is-dragover {
+    display: none;
+}
+
+.message p {
+    font-size: .9em;
+}
+
+.photo__options {
+    list-style: none;
+}
+
+.photo__options li {
+    display: inline-block;
+    text-align: center;
+    width: 50%;
+}
+
+.photo--empty .photo__circle{
+    cursor: pointer;
+}
+
+
+/**
+* IMG states
+*/
+
+.profile.is-dragover .photo__circle img,
+.photo--empty img,
+.photo--error img,
+.photo--loading img {
+    display: none;
+}
+
+
+/**
+* States
+*/
+
+
+/* DEFAULT */
+
+.message.is-empty,
+.message.is-loading,
+.message.is-something-wrong,
+.message.is-dragover {
+    display: none;
+}
+
+
+/* EMPTY */
+
+.photo--empty .message.is-empty {
+    display: inline-block;
+}
+
+.photo--empty .photo__circle:hover {
+    background: #268eff;
+}
+
+.photo--empty .photo__circle:hover .message {
+    color: #FFF;
+}
+
+
+/* LOADING */
+
+.photo--loading .message.is-loading {
+    display: inline-block;
+}
+
+.photo--loading .message.is-empty,
+.photo--loading .is-something-wrong,
+.photo--loading .message.is-dragover,
+.photo--loading .photo__options {
+    display: none;
+}
+
+
+/* ERROR */
+
+.photo--error .message.is-empty,
+.photo--error .message.is-loading,
+.photo--error .message.is-dragover,
+.photo--error .photo__options {
+    display: none;
+}
+
+.photo--error .message.is-something-wrong {
+    display: inline-block;
+}
+
+
+/* DRAGOVER */
+
+.profile.is-dragover .photo__circle .is-dragover {
+    display: inline-block;
+}
+
+.profile.is-dragover .message.is-empty,
+.profile.is-dragover .message.is-loading,
+.profile.is-dragover .message.is-something-wrong,
+.photo--error .photo__options {
+    display: none;
+}
