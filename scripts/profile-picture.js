@@ -44,6 +44,7 @@
         self.defaults.onSliderChange = null;
         self.defaults.onPositionChange = null;
         self.defaults.onLoad = null;
+        self.defaults.onRemove = null;
         /**
          * Slider default options
          */
@@ -291,6 +292,13 @@
                 self.photoImg.addClass('hide').attr('src', null);
                 self.photoOptions.addClass('hide');
                 self.photoArea.addClass('photo--empty');
+                self.model = {};
+                /**
+                 * Call the onRemove callback
+                 */
+                if (typeof self.defaults.onRemove === 'function') {
+                    self.defaults.onRemove(self.model);
+                }
             });
 
             self.element.on('drop', function (e) {
@@ -445,4 +453,13 @@
     }
 })(window, jQuery);
 
-profilePicture('.profile', 'http://leitoresdepressivos.com/wp-content/uploads/2013/11/Douglas-Adams.jpg');
+profilePicture('.profile', 'http://leitoresdepressivos.com/wp-content/uploads/2013/11/Douglas-Adams.jpg',
+    {
+        onLoad: printOutput,
+        onChange: printOutput,
+        onRemove: printOutput
+    });
+
+function printOutput(data) {
+    $('#output pre').html(JSON.stringify(data).replace(new RegExp(/,/, 'g'), ',<br>').replace(new RegExp(/\{/, 'g'), '{<br>').replace(new RegExp(/\}/, 'g'), '<br>}<br>'));
+}
