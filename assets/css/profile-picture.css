@@ -293,23 +293,3 @@ pre {
 .profile.is-dragover .message.is-wrong-image-size {
     display: none;
 }
-
-/* UPLOAD TYPE STATE */
-
-.upload--advanced,.upload--simple {
-    display: none;
-}
-
-.is-advanced-upload .upload--advanced{
-    display: block;
-}
-.is-advanced-upload .upload--simple {
-    display: none;
-}
-
-.is-simple-upload .upload--advanced{
-    display: none;
-}
-.is-simple-upload .upload--simple {
-    display: block;
-}

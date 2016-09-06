@@ -1,8 +1,20 @@
+/**
+ * Profile picture
+ * @author Daniel Salvagni <danielsalvagni@gmail.com>
+ */
+
+
+/**
+ * Turn the globals into local variables.
+ */
 ; (function (window, $, undefined) {
     if (!window.profilePicture) {
         window.profilePicture = profilePicture;
     }
 
+    /**
+     * Component
+     */
     function profilePicture(cssSelector, imageFilePath, options) {
         var self = this;
         /**
@@ -88,6 +100,27 @@
             removeImage: removeImage
         };
 
+
+
+        /**
+         * Constructor
+         * Register all components and options.
+         * Can load a preset image
+         */
+        function init(cssSelector, imageFilePath, options) {
+            if (imageFilePath) {
+                loadImage(imageFilePath);
+            } else {
+                self.photoArea.addClass('photo--empty');
+            }
+
+            self.options = $.extend({}, self.defaults, options);
+
+            registerDropZoneEvents();
+            registerImageDragEvents();
+            registerSliderControlEvents();
+        }
+
         /**
          * Return the model
          */
@@ -100,11 +133,6 @@
         function setModel(model) {
             self.model = model;
         }
-
-        function isAdvancedUpload() {
-            var div = document.createElement('div');
-            return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
-        };
 
         /**
          * Load the image info an set image source
@@ -189,7 +217,9 @@
             var parentTop = parent.offset().top;
             var parentWidth = parent.outerWidth();
             var parentHeight = parent.outerHeight();
-
+            /**
+             * Calculates the image position to keep it centered
+             */
             var deltaTop = (self.photoImg.position().top - (parentWidth / 2)) / height;
             var deltaLeft = (self.photoImg.position().left - (parentWidth / 2)) / width;
             var top = deltaTop * newHeight + (parentWidth / 2);
@@ -202,7 +232,9 @@
             if (left >= 0) {
                 left = 0;
             } else if (newWidth + (left - parentLeft) < parentWidth) {
-                console.log((newWidth - parent.outerWidth()));
+                /**
+                 * Calculates to handle the empty space on the right side
+                 */
                 left = Math.abs((newWidth - parent.outerWidth())) * -1;
             }
             /**
@@ -211,9 +243,14 @@
             if (top >= 0) {
                 top = 0;
             } else if (newHeight + (top - parentTop) < parentHeight) {
+                /**
+                 * Calculates to handle the empty space on bottom
+                 */
                 top = Math.abs((newHeight - parentHeight)) * -1;
             }
-
+            /**
+             * Set the model
+             */
             self.model.height = newHeight;
             self.model.width = newWidth;
             self.model.top = top;
@@ -232,7 +269,7 @@
             var newSize = calcNewImageSize(self.options.image.scale);
 
             /**
-             * Limit the image size
+             * Limit the image size to the container size.
              */
             if (newSize.width < self.photoFrame.outerWidth()) {
                 return;
@@ -259,44 +296,29 @@
             }
         }
 
-
         /**
          * Convert scale value to percentage
          */
         function getPercentageOf(val, max) {
             return parseInt(((val * 100) / max).toFixed(0));
         }
-
         /**
-         * Register events
+         * Change the image size by a percentage.
+         * Updates the slider values as well.
          */
-        function init(cssSelector, imageFilePath, options) {
-            if (imageFilePath) {
-                loadImage(imageFilePath);
-            } else {
-                self.photoArea.addClass('photo--empty');
-            }
-
-            if (isAdvancedUpload) {
-                self.element.addClass('is-advanced-upload');
-            } else {
-                self.element.addClass('is-simple-upload');
-            }
-
-            self.options = $.extend({}, self.defaults, options);
-
-            registerDropZoneEvents();
-            registerImageDragEvents();
-            registerSliderControlEvents();
-        }
-
         function scaleImage(percentage) {
+            /**
+             * Set a css class to the slider if it gets to its minimum value
+             */
             if (percentage <= 0) {
                 self.slider.addClass('slider--minValue');
                 percentage = 0;
             } else {
                 self.slider.removeClass('slider--minValue');
             }
+            /**
+             * Set a css class to the slider if it gets to its maximum value
+             */
             if (percentage >= 200) {
                 self.slider.addClass('slider--maxValue');
                 percentage = 200;
@@ -312,7 +334,9 @@
 
             resizeImage();
         }
-
+        /**
+         * Remove the image and reset the component state
+         */
         function removeImage() {
             self.photoImg.addClass('hide').attr('src', '')
                 .attr('style', '');
@@ -332,11 +356,71 @@
          */
         function registerDropZoneEvents() {
             var target = null;
+            /**
+             * Stop event propagation to all dropzone related events.
+             */
+            self.element.on('drag dragstart dragend dragover dragenter dragleave drop', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.originalEvent.dataTransfer.dropEffect = 'copy';
+            });
 
+            /**
+             * Register the events when the file is out or dropped on the dropzone
+             */
+            self.element.on('dragend dragleave drop', function (e) {
+                if (target === e.target) {
+                    self.element.removeClass('is-dragover');
+                }
+            });
+            /**
+             * Register the events when the file is over the dropzone
+             */
+            self.element.on('dragover dragenter', function (e) {
+                target = e.target;
+                self.element.addClass('is-dragover');
+            });
+            /**
+             * On a file is selected, calls the readFile method.
+             * It is allowed to select just one file - we're forcing it here.
+             */
+            self.element.on('change', 'input[type=file]', function (e) {
+                if (this.files && this.files.length) {
+                    readFile(this.files[0]);
+                    this.value = '';
+                }
+            });
+            /**
+             * Handle the click to the hidden input file so we can browser files.
+             */
+            self.element.on('click', '.photo--empty .photo__circle', function (e) {
+                $(cssSelector + ' input[type=file]').trigger('click');
+
+            });
+            /**
+             * Register the remove action to the remove button.
+             */
+            self.element.on('click', '.remove', function (e) {
+                removeImage();
+            });
+            /**
+             * Register the drop element to the container component
+             */
+            self.element.on('drop', function (e) {
+                readFile(e.originalEvent.dataTransfer.files[0]);
+            });
+
+
+            /**
+             * Only into the DropZone scope.
+             * Read a file using the FileReader API.
+             * Validates file type.
+             */
             function readFile(file) {
-
                 self.photoArea.removeClass('photo--error photo--error--file-type photo--error-image-size');
-
+                /**
+                 * Validate file type
+                 */
                 if (!file.type.match('image.*')) {
                     self.photoArea.addClass('photo--error--file-type');
                     /**
@@ -347,8 +431,6 @@
                     }
                     return;
                 }
-
-
 
                 var reader;
                 reader = new FileReader();
@@ -370,50 +452,15 @@
                 }
                 reader.readAsDataURL(file);
             }
-
-            self.element.on('drag dragstart dragend dragover dragenter dragleave drop', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.originalEvent.dataTransfer.dropEffect = 'copy';
-            });
-
-            self.element.on('dragend dragleave drop', function (e) {
-                if (target === e.target) {
-                    self.element.removeClass('is-dragover');
-                }
-            });
-
-            self.element.on('dragover dragenter', function (e) {
-                target = e.target;
-                self.element.addClass('is-dragover');
-            });
-
-            self.element.on('change', 'input[type=file]', function (e) {
-                if (this.files && this.files.length) {
-                    readFile(this.files[0]);
-                    this.value = '';
-                }
-            });
-
-            self.element.on('click', '.photo--empty .photo__circle', function (e) {
-                $(cssSelector + ' input[type=file]').trigger('click');
-
-            });
-
-            self.element.on('click', '.remove', function (e) {
-                removeImage();
-            });
-
-            self.element.on('drop', function (e) {
-                readFile(e.originalEvent.dataTransfer.files[0]);
-            });
         }
         /**
          * Register the image drag events
          */
         function registerImageDragEvents() {
             var $target, x, y;
-
+            /**
+             * Get the image info
+             */
             self.photoImg.on("mousedown", function (e) {
                 $target = $(e.target);
                 /**
@@ -428,7 +475,9 @@
                 };
 
             });
-
+            /**
+             * Stop dragging
+             */
             $(document).on("mouseup", function (e) {
                 if ($target) {
                     /**
@@ -446,7 +495,9 @@
                 }
                 $target = null;
             });
-
+            /**
+             * Drag the image inside the container
+             */
             $(document).on("mousemove", function (e) {
                 if ($target) {
                     var top = (e.pageY) - y;
@@ -502,6 +553,22 @@
             });
 
             /**
+             * Register the mouse and keyboard events
+             */
+            self.sliderHandler.on('keydown', keyboardNavigation);
+            /**
+             * The focus event allow us to change the slider position with the keyboard.
+             */
+            self.sliderHandler.on('mousedown focus', function (e) {
+                holderOffset = self.sliderArea.offset().left;
+                startOffset = self.sliderHandler.offset().left - holderOffset;
+                sliderWidth = self.sliderArea.width();
+
+                $(document).on('mousemove', moveHandler);
+                $(document).on('mouseup blur', stopHandler);
+            });
+
+            /**
              * Allow the user to control the slider from his keyboard
              */
             function keyboardNavigation(e) {
@@ -512,19 +579,9 @@
                     moveHandler(e, self.sliderHandler.position().left + 1);
                 }
             }
-
-            self.sliderHandler.on('keydown', keyboardNavigation);
-
-            self.sliderHandler.on('mousedown focus', function (e) {
-
-                holderOffset = self.sliderArea.offset().left;
-                startOffset = self.sliderHandler.offset().left - holderOffset;
-                sliderWidth = self.sliderArea.width();
-
-                $(document).on('mousemove', moveHandler);
-                $(document).on('mouseup blur', stopHandler);
-            });
-
+            /**
+             * Calculates the percentage by the slider handler position and then scale the image
+             */
             function moveHandler(e, percentage) {
                 if (!percentage) {
                     percentage = e.pageX - holderOffset;
@@ -532,6 +589,9 @@
                 }
                 scaleImage(percentage);
             }
+            /**
+             * Unregister the slider events
+             */
             function stopHandler() {
                 $(document).off('mousemove', moveHandler);
                 $(document).off('mouseup', stopHandler);
