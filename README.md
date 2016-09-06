@@ -2,8 +2,9 @@
 
 [Demo version](http://www.dsalvagni.com.br/profile-picture) | [Codepen](http://codepen.io/dsalvagni/pen/BLapab)
 
-## Todo
-* Fix slider percentage
+## Screenshots
+![Screen 1](screen1.gif) ![Screen 2](screen2.gif)
+![Screen 3](screen3.gif)
 
 ## Getting started
 Import the `profile-picture.js` and `profile-picture.css` to your project, then use the `html` template from the `index.html` file.
