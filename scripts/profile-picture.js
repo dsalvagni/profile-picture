@@ -493,11 +493,13 @@
                 });
                 if (posX <= 0) {
                     self.slider.addClass('slider--minValue');
+                    posX = 0;
                 } else {
                     self.slider.removeClass('slider--minValue');
                 }
                 if (posX >= 200) {
                     self.slider.addClass('slider--maxValue');
+                    posX = 200;
                 } else {
                     self.slider.removeClass('slider--maxValue');
                 }
