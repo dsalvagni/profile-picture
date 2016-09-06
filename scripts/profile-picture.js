@@ -327,7 +327,7 @@
             }
 
             self.sliderHandler.css({
-                left: getPercentageOf(percentage, 200) + '%'
+                left: percentage + '%'
             });
 
             self.options.image.scale = percentage;
@@ -572,11 +572,12 @@
              * Allow the user to control the slider from his keyboard
              */
             function keyboardNavigation(e) {
+                console.log(e);
                 if (e.keyCode == '37') {
-                    moveHandler(e, self.sliderHandler.position().left - 1);
+                    moveHandler(e, self.options.image.scale-1);
                 }
                 else if (e.keyCode == '39') {
-                    moveHandler(e, self.sliderHandler.position().left + 1);
+                    moveHandler(e, self.options.image.scale+1);
                 }
             }
             /**
@@ -586,6 +587,7 @@
                 if (!percentage) {
                     percentage = e.pageX - holderOffset;
                     percentage = Math.min(Math.max(0, percentage), sliderWidth);
+                    percentage = getPercentageOf(percentage, 200);
                 }
                 scaleImage(percentage);
             }
