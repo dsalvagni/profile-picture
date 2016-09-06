@@ -5,13 +5,13 @@
 ## Todo
 * Center image while zooming
 
----
+
 
 ## Getting started
 ```
 var pp = profilePicture(cssSelector, imageUrl?, options?);
 ```
----
+
 ## Model
 ```javascript
 {
@@ -25,7 +25,7 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
     scale
 }
 ```
----
+
 ## Options
 
 ### Slider options
@@ -59,7 +59,7 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 #### originalTop
 > Define the original image's top offset
 
----
+
 ## Callbacks
 
 ### onLoad
@@ -86,7 +86,7 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 | file-type   | The file isn't a image  |
 | unknown | Errors didn't mapped |
 
----
+
 ## Methods
 
 ### getData
