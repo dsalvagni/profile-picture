@@ -8,6 +8,8 @@
 
 
 ## Getting started
+Import the `profile-picture.js` and `profile-picture.css` to your project, then use the `html` template from the `index.html` file.
+
 ```
 var pp = profilePicture(cssSelector, imageUrl?, options?);
 ```
