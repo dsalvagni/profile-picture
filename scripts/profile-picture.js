@@ -1,4 +1,4 @@
-(function (window, $, undefined) {
+;(function (window, $, undefined) {
     if (!window.profilePicture) {
         window.profilePicture = profilePicture;
     }
@@ -83,7 +83,7 @@
          */
         return {
             getData: getData
-        }
+        };
 
         /**
          * Return the model
