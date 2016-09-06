@@ -98,6 +98,7 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 
 ## Dependencies
 [jQuery](https://jquery.com/) and [FontAwesome*](http://fontawesome.io/)
+
 *You can use other icon gallery as well.
 
 ## Known issues
