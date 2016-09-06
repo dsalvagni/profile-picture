@@ -1,4 +1,4 @@
-;(function (window, $, undefined) {
+; (function (window, $, undefined) {
     if (!window.profilePicture) {
         window.profilePicture = profilePicture;
     }
@@ -165,6 +165,9 @@
          * Helper to calculate the new image's size
          */
         function calcNewImageSize(percentage) {
+            /**
+             * Element
+             */
             var newWidth = ((percentage * self.model.originalWidth) / 100);
             var width = self.photoImg.width();
             var newHeight = ((percentage * self.model.originalHeight) / 100);
@@ -172,6 +175,39 @@
             var top = self.photoImg.position().top;
             var left = self.photoImg.position().left;
 
+            /**
+             * Container
+             */
+            var parent = self.photoImg.parent();
+            var parentLeft = parent.offset().left;
+            var parentTop = parent.offset().top;
+            var parentWidth = parent.outerWidth();
+            var parentHeight = parent.outerHeight();
+
+            var cdragtop=(self.photoImg.position().top-(parentWidth/2))/height;
+            var cdragleft=(self.photoImg.position().left-(parentWidth/2))/width;
+            var top = cdragtop*newHeight + (parentWidth/2);
+            var left = cdragleft*newWidth + (parentWidth/2);
+
+            
+            /**
+             * Limit the area to drag horizontally
+             */
+            if (left >= 0) {
+                left = 0;
+            } else if (self.photoImg.width() + (left - parentLeft) < parentWidth) {
+                /* @TODO */
+                
+                
+            }
+            /**
+             * Limit the area to drag vertically
+             */
+            if (top >= 0) {
+                top = 0;
+            } else if (self.photoImg.height() + (top - parentTop) < parentHeight) {
+                top = 0;                
+            }
 
             self.model.height = newHeight;
             self.model.width = newWidth;
@@ -188,14 +224,8 @@
         function resizeImage() {
             if (!self.options.image.scale) return;
 
-
-
             var newSize = calcNewImageSize(self.options.image.scale);
-            var parent = self.photoImg.parent();
-            var parentLeft = parent.offset().left;
-            var parentTop = parent.offset().top;
-            var parentWidth = parent.outerWidth();
-            var parentHeight = parent.outerHeight();
+
             /**
              * Limit the image size
              */
@@ -205,23 +235,6 @@
             if (newSize.height < self.photoFrame.outerHeight()) {
                 return;
             }
-            /**
-             * Limit the area to drag horizontally
-             */
-            if (newSize.left >= parentLeft) {
-                self.options.image.originalLeft = self.photoImg.position().left;
-                newSize.left = parentLeft;
-            } else if (self.photoImg.width() + (newSize.left - parentLeft) < parentWidth) {
-            }
-            /**
-             * Limit the area to drag vertically
-             */
-            if (newSize.top >= parentTop) {
-                self.options.image.originalTop = self.photoImg.position().top;
-                newSize.top = parentTop
-            } else if (self.photoImg.height() + (newSize.top - parentTop) < parentHeight) {
-            }
-
             self.photoImg.css({
                 width: newSize.width,
                 top: newSize.top,
@@ -254,7 +267,7 @@
                 self.element.addClass('photo--empty');
             }
 
-            if(isAdvancedUpload) {
+            if (isAdvancedUpload) {
                 self.element.addClass('is-advanced-upload');
             } else {
                 self.element.addClass('is-simple-upload');
@@ -366,10 +379,10 @@
                 /**
                  * Firefox
                  */
-                if(e.offsetX==undefined){
-                    x = e.pageX-$(this).offset().left;
-                    y = e.pageY-$(this).offset().top;
-                }else{
+                if (e.offsetX == undefined) {
+                    x = e.pageX - $(this).offset().left;
+                    y = e.pageY - $(this).offset().top;
+                } else {
                     x = e.offsetX;
                     y = e.offsetY;
                 };
@@ -409,7 +422,7 @@
                     if (left >= parentLeft) {
                         left = parentLeft;
                     } else if ($target.width() + (left - parentLeft) < parentWidth) {
-                        return
+                        return;
                     }
                     /**
                      * Limit the area to drag vertically
@@ -510,18 +523,3 @@
         }
     }
 })(window, jQuery);
-
-var p = new profilePicture('.profile', 'http://leitoresdepressivos.com/wp-content/uploads/2013/11/Douglas-Adams.jpg',
-    {
-        onLoad: printOutput,
-        onChange: printOutput,
-        onRemove: printOutput,
-        onError: function (type) {
-            console.log('Error type: ' + type);
-        }
-    });
-
-
-function printOutput(data) {
-    console.log(JSON.stringify(data));
-}

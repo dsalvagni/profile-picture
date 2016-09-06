@@ -50,6 +50,25 @@
         window.jQuery || document.write('<script src="vendor/jquery.min.js"><\/script>')
     </script>
     <script src="scripts/profile-picture.js"></script>
+    <script>
+    /**
+     * DEMO
+     */ 
+    var p = new profilePicture('.profile', 'http://biografieonline.it/img/bio/d/Douglas_Adams.jpg',
+        {
+            onLoad: printOutput,
+            onChange: printOutput,
+            onRemove: printOutput,
+            onError: function (type) {
+                console.log('Error type: ' + type);
+            }
+        });
+
+
+    function printOutput(data) {
+        console.log(JSON.stringify(data));
+    }
+    </script>
 </body>
 
 </html>
