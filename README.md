@@ -1,7 +1,6 @@
 # Profile picture
 
-[Demo version](http://www.dsalvagni.com.br/profile-picture) |  
-[Codepen](http://codepen.io/dsalvagni/pen/BLapab)
+[Demo version](http://www.dsalvagni.com.br/profile-picture) | [Codepen](http://codepen.io/dsalvagni/pen/BLapab)
 
 ## Todo
 * Validate image size
