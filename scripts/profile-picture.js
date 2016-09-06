@@ -42,6 +42,7 @@
          */
         self.defaults.onChange = null;
         self.defaults.onSliderChange = null;
+        self.defaults.onImageSizeChange = null;
         self.defaults.onPositionChange = null;
         self.defaults.onLoad = null;
         self.defaults.onRemove = null;
@@ -82,7 +83,9 @@
          * Return public methods
          */
         return {
-            getData: getData
+            getData: getData,
+            scaleImage: scaleImage,
+            removeImage: removeImage
         };
 
         /**
@@ -109,8 +112,8 @@
         function loadImage(imageUrl) {
 
             self.model.imageSrc = imageUrl;
+            self.photoArea.addClass('photo--loading');
             self.photoImg.attr('src', imageUrl)
-                .removeClass('hide')
                 .on('load', function () {
                     if (this.width < self.options.image.minWidth ||
                         this.height < self.options.image.minHeight) {
@@ -134,6 +137,8 @@
                     self.model.width = this.width;
                     self.model.scale = self.options.slider.initialValue;
                     resetSlider();
+                    scaleImage(0);
+                    $(this).removeClass('hide');
                     /**
                      * Call the onLoad callback
                      */
@@ -164,7 +169,7 @@
          * Helper to calculate the new image's size
          */
         function calcNewImageSize(percentage) {
-            var ratio = getPercentageOf(self.options.slider.minValue,self.options.slider.maxValue) * 2;
+            var ratio = getPercentageOf(self.options.slider.minValue, self.options.slider.maxValue) * 2;
             percentage = percentage + ratio;
             /**
              * Element
@@ -222,7 +227,7 @@
          * Helper to resize the image
          */
         function resizeImage() {
-            if (!self.options.image.scale) return;
+            if (self.options.image.scale < 0) return;
 
             var newSize = calcNewImageSize(self.options.image.scale);
 
@@ -246,6 +251,12 @@
             if (typeof self.options.onChange === 'function') {
                 self.options.onChange(self.model);
             }
+            /**
+             * Call the onImageSizeChange callback
+             */
+            if (typeof self.options.onImageSizeChange === 'function') {
+                self.options.onImageSizeChange(self.model);
+            }
         }
 
 
@@ -260,7 +271,6 @@
          * Register events
          */
         function init(cssSelector, imageFilePath, options) {
-
             if (imageFilePath) {
                 loadImage(imageFilePath);
             } else {
@@ -278,6 +288,43 @@
             registerDropZoneEvents();
             registerImageDragEvents();
             registerSliderControlEvents();
+        }
+
+        function scaleImage(percentage) {
+            if (percentage <= 0) {
+                self.slider.addClass('slider--minValue');
+                percentage = 0;
+            } else {
+                self.slider.removeClass('slider--minValue');
+            }
+            if (percentage >= 200) {
+                self.slider.addClass('slider--maxValue');
+                percentage = 200;
+            } else {
+                self.slider.removeClass('slider--maxValue');
+            }
+
+            self.sliderHandler.css({
+                left: getPercentageOf(percentage, 200) + '%'
+            });
+
+            self.options.image.scale = percentage;
+
+            resizeImage();
+        }
+
+        function removeImage() {
+            self.photoImg.addClass('hide').attr('src', '')
+                .attr('style', '');
+            self.photoArea.addClass('photo--empty');
+            setModel({});
+
+            /**
+             * Call the onRemove callback
+             */
+            if (typeof self.options.onRemove === 'function') {
+                self.options.onRemove(self.model);
+            }
         }
 
         /**
@@ -354,17 +401,7 @@
             });
 
             self.element.on('click', '.remove', function (e) {
-                self.photoImg.addClass('hide').attr('src', '')
-                    .attr('style', '');
-                self.photoArea.addClass('photo--empty');
-                setModel({});
-
-                /**
-                 * Call the onRemove callback
-                 */
-                if (typeof self.options.onRemove === 'function') {
-                    self.options.onRemove(self.model);
-                }
+                removeImage();
             });
 
             self.element.on('drop', function (e) {
@@ -488,32 +525,12 @@
                 $(document).on('mouseup blur', stopHandler);
             });
 
-            function moveHandler(e, posX) {
-                if (!posX) {
-                    posX = e.pageX - holderOffset;
-                    posX = Math.min(Math.max(0, posX), sliderWidth);
+            function moveHandler(e, percentage) {
+                if (!percentage) {
+                    percentage = e.pageX - holderOffset;
+                    percentage = Math.min(Math.max(0, percentage), sliderWidth);
                 }
-                if (posX <= 0) {
-                    self.slider.addClass('slider--minValue');
-                    posX = 0;
-                } else {
-                    self.slider.removeClass('slider--minValue');
-                }
-                if (posX >= 200) {
-                    self.slider.addClass('slider--maxValue');
-                    posX = 200;
-                } else {
-                    self.slider.removeClass('slider--maxValue');
-                }
-                
-                self.sliderHandler.css({
-                    left: getPercentageOf(posX, 200) + '%'
-                });
-
-                
-                self.options.image.scale = posX;
-
-                resizeImage();
+                scaleImage(percentage);
             }
             function stopHandler() {
                 $(document).off('mousemove', moveHandler);

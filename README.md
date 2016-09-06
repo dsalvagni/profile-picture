@@ -78,6 +78,9 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 ### onPositionChange
 > When you drag the image, this callback is called with the **model** as parameter.
 
+### onImageSizeChange
+> When the image size change this callback is called with the **model** as parameter.
+
 ### onError
 > When something wrong happens, this callback is called with the **error type** as parameter.
 
@@ -91,9 +94,23 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 ## Methods
 
 ### getData
+> Public method to return the model.
+
 ```
-    /* Returns the model */
     pp.getData();
+```
+### scaleImage
+> Public method to scale the image. You can scale from 0 to 200 percent.
+
+```
+    pp.scaleImage(0..200);
+```
+
+### removeImage
+> Public method to remove the image.
+
+```
+    pp.removeImage();
 ```
 
 ## Dependencies
