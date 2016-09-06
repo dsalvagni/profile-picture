@@ -45,6 +45,7 @@
         self.defaults.onPositionChange = null;
         self.defaults.onLoad = null;
         self.defaults.onRemove = null;
+        self.defaults.onError = null;
         /**
          * Slider default options
          */
@@ -61,8 +62,8 @@
             originalHeight: 0,
             originalTop: 0,
             originalLeft: 0,
-            minWidth: 160,
-            minHeight: 160
+            minWidth: 350,
+            minHeight: 350
         };
 
         /**
@@ -90,6 +91,12 @@
         function getData() {
             return model;
         }
+        /**
+         * Set the model
+         */
+        function setModel(model) {
+            self.model = model;
+        }
 
         /**
          * Load the image info an set image source
@@ -101,10 +108,25 @@
             self.photoImg.attr('src', imageUrl)
                 .removeClass('hide')
                 .on('load', function () {
-                    self.model.originalHeight = self.photoImg.height();
-                    self.model.originalWidth = self.photoImg.width();
-                    self.model.height = self.photoImg.height();
-                    self.model.width = self.photoImg.width();
+                    if(this.width < self.options.image.minWidth || 
+                      this.height < self.options.image.minHeight) {
+                      self.photoArea.addClass('photo--error--image-size photo--empty');
+                      setModel({});
+
+                      /**
+                     * Call the onError callback
+                     */
+                    if (typeof self.defaults.onError === 'function') {
+                        self.defaults.onError('image-size');
+                    }
+                      return;
+                    } else {
+                        self.photoArea.removeClass('photo--error--image-size');
+                    }
+                    self.model.originalHeight = this.height;
+                    self.model.originalWidth = this.width;
+                    self.model.height = this.height;
+                    self.model.width = this.width;
                     self.model.scale = self.options.slider.initialValue;
                     resetSlider();
                     /**
@@ -123,7 +145,7 @@
              * Reset the slider scale values
              */
             self.defaults.slider.initialValue = self.model.width;
-            self.defaults.slider.minValue = self.options.image.minWidth;
+            self.defaults.slider.minValue = self.photoFrame.outerWidth();
             self.defaults.slider.maxValue = self.model.originalWidth * 2;
 
             self.slider.removeClass('slider--maxValue')
@@ -171,10 +193,10 @@
             /**
              * Limit the image size
              */
-            if (newSize.width < self.options.image.minWidth) {
+            if (newSize.width < self.photoFrame.outerWidth()) {
                 return;
             }
-            if (newSize.height < self.options.image.minHeight) {
+            if (newSize.height < self.photoFrame.outerHeight()) {
                 return;
             }
             /**
@@ -241,23 +263,43 @@
 
             function readFile(file) {
 
+                self.photoArea.removeClass('photo--error');
+
                 if (!file.type.match('image.*')) {
-                    self.photoArea.addClass('photo--error');
+                    self.photoArea.addClass('photo--error--file-type');
+                    /**
+                     * Call the onError callback
+                     */
+                    if (typeof self.defaults.onError === 'function') {
+                        self.defaults.onError('file-type');
+                    }
                     return;
                 }
 
-                self.photoArea.addClass('photo--loading');
+                
 
                 var reader;
                 reader = new FileReader();
                 self.photoImg.addClass('hide');
                 self.photoLoading.removeClass('hide');
+                reader.onloadstart = function() {
+                    self.photoArea.addClass('photo--loading');
+                }
                 reader.onloadend = function (data) {
                     self.photoImg.css({ left: 0, top: 0 });
                     loadImage(data.target.result);
                     self.photoLoading.addClass('hide');
                     self.photoOptions.removeClass('hide');
-                    self.photoArea.removeClass('photo--empty photo--error photo--loading');
+                    self.photoArea.removeClass('photo--empty photo--error--file-type photo--loading');
+                }
+                reader.onerror = function() {
+                    self.photoArea.addClass('photo--error');
+                    /**
+                     * Call the onError callback
+                     */
+                    if (typeof self.defaults.onError === 'function') {
+                        self.defaults.onError('unknown');
+                    }
                 }
                 reader.readAsDataURL(file);
             }
@@ -292,7 +334,7 @@
                 self.photoImg.addClass('hide').attr('src', null);
                 self.photoOptions.addClass('hide');
                 self.photoArea.addClass('photo--empty');
-                self.model = {};
+                setModel({});
                 /**
                  * Call the onRemove callback
                  */
@@ -453,13 +495,17 @@
     }
 })(window, jQuery);
 
-profilePicture('.profile', 'http://leitoresdepressivos.com/wp-content/uploads/2013/11/Douglas-Adams.jpg',
+var p =new profilePicture('.profile', 'http://leitoresdepressivos.com/wp-content/uploads/2013/11/Douglas-Adams.jpg',
     {
         onLoad: printOutput,
         onChange: printOutput,
-        onRemove: printOutput
+        onRemove: printOutput,
+        onError: function(type) {
+            console.log('Error type: '+type);        
+        }
     });
 
+
 function printOutput(data) {
-    $('#output pre').html(JSON.stringify(data).replace(new RegExp(/,/, 'g'), ',<br>').replace(new RegExp(/\{/, 'g'), '{<br>').replace(new RegExp(/\}/, 'g'), '<br>}<br>'));
+    console.log(JSON.stringify(data));
 }

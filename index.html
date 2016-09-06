@@ -23,11 +23,14 @@
                     <i class="fa fa-2x fa-cloud-upload"></i>
                     <p>Drop your photo</p>
                 </div>
-                <div class="message is-something-wrong">
+                <div class="message is-wrong-file-type">
                     <p>Only images allowed.</p>
                     <p>Drop your photo here or browse your computer.</p>
                 </div>
-                <img src="" />
+                <div class="message is-wrong-image-size">
+                    <p>Your photo must be larger than 350px.</p>
+                </div>
+                <img/>
             </div>
             <div class="photo__options">
                 <p><a href="javascript:;" class="remove"><i class="fa fa-trash"></i> Remove</a></p>
@@ -39,15 +42,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <hr>
-
-    <div id="output">
-        <h2>Output</h2>
-        <pre>
-            Loading...
-        </pre>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>

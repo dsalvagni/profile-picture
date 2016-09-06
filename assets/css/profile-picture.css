@@ -171,14 +171,14 @@ pre {
     cursor: pointer;
 }
 
-
 /**
 * IMG states
 */
-
 .profile.is-dragover .photo__circle img,
 .photo--empty img,
 .photo--error img,
+.photo--error--file-type img,
+.photo--error--image-size img,
 .photo--loading img {
     display: none;
 }
@@ -193,6 +193,8 @@ pre {
 
 .message.is-empty,
 .message.is-loading,
+.message.is-wrong-file-type,
+.message.is-wrong-image-size,
 .message.is-something-wrong,
 .message.is-dragover {
     display: none;
@@ -221,23 +223,51 @@ pre {
 }
 
 .photo--loading .message.is-empty,
-.photo--loading .is-something-wrong,
+.photo--loading .message.is-wrong-file-type,
 .photo--loading .message.is-dragover,
+.photo--loading .message.is-wrong-image-size,
 .photo--loading .photo__options {
     display: none;
 }
 
 
 /* ERROR */
-
+/* UNKNOWN */
 .photo--error .message.is-empty,
 .photo--error .message.is-loading,
 .photo--error .message.is-dragover,
+.photo--error .message.is-wrong-image-size,
 .photo--error .photo__options {
     display: none;
 }
 
 .photo--error .message.is-something-wrong {
+    display: inline-block;
+}
+
+/* FILE TYPE*/
+.photo--error--file-type .message.is-empty,
+.photo--error--file-type .message.is-loading,
+.photo--error--file-type .message.is-dragover,
+.photo--error--file-type .message.is-wrong-image-size,
+.photo--error--file-type .photo__options {
+    display: none;
+}
+
+.photo--error--file-type .message.is-wrong-file-type {
+    display: inline-block;
+}
+
+/* IMAGE SIZE */
+.photo--error--image-size .message.is-empty,
+.photo--error--image-size .message.is-loading,
+.photo--error--image-size .message.is-dragover,
+.photo--error--image-size .message.is-wrong-file-type,
+.photo--error--image-size .photo__options {
+    display: none;
+}
+
+.photo--error--image-size .message.is-wrong-image-size {
     display: inline-block;
 }
 
@@ -250,7 +280,7 @@ pre {
 
 .profile.is-dragover .message.is-empty,
 .profile.is-dragover .message.is-loading,
-.profile.is-dragover .message.is-something-wrong,
-.photo--error .photo__options {
+.profile.is-dragover .message.is-wrong-file-type,
+.profile.is-dragover .message.is-wrong-image-size {
     display: none;
 }

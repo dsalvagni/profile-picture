@@ -3,14 +3,13 @@
 [Demo version](http://www.dsalvagni.com.br/profile-picture) | [Codepen](http://codepen.io/dsalvagni/pen/BLapab)
 
 ## Todo
-* Validate image size
 * Center image while zooming
-
+---
 ## Getting started
 ```
 var pp = profilePicture(cssSelector, imageUrl?, options?);
 ```
-
+---
 ## Model
 ```javascript
 {
@@ -24,7 +23,7 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
     scale
 }
 ```
-
+---
 ## Options
 
 ### Slider options
@@ -58,23 +57,34 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 #### originalTop
 > Define the original image's top offset
 
+---
 ## Callbacks
 
 ### onLoad
-> When the image is loaded, this event is fired with the **model** as parameter.
+> When the image is loaded, this callback is called with the **model** as parameter.
 
 ### onChange
-> When anything changed, this event is fired with the **model** as parameter.
+> When anything changed, this callback is called with the **model** as parameter.
 
 ### onRemove
-> When the image is remove, this event is fired with an empty **model** as parameter.
+> When the image is remove, this callback is called with an empty **model** as parameter.
 
 ### onSliderChange
-> When you drag the slider handler/zooming, this event is fired with the **model** as parameter.
+> When you drag the slider handler/zooming, this callback is called with the **model** as parameter.
 
 ### onPositionChange
-> When you drag the image, this event is fired with the **model** as parameter.
+> When you drag the image, this callback is called with the **model** as parameter.
 
+### onError
+> When something wrong happens, this callback is called with the **error type** as parameter.
+
+| Error type   | Description |
+|---|---|
+| image-size   | The image is too small  |
+| file-type   | The file isn't a image  |
+| unknown | Errors didn't mapped |
+
+---
 ## Methods
 
 ### getData
