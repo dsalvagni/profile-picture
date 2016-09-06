@@ -156,7 +156,7 @@
             self.slider.removeClass('slider--maxValue')
                 .removeClass('slider--minValue');
             self.sliderHandler.css({
-                left: getPercentageFrom(self.options.slider.initialValue, self.options.slider.maxValue) + '%'
+                left: getPercentageOf(self.options.slider.initialValue, self.options.slider.maxValue) + '%'
             });
         }
 
@@ -164,6 +164,8 @@
          * Helper to calculate the new image's size
          */
         function calcNewImageSize(percentage) {
+            var ratio = getPercentageOf(self.options.slider.minValue,self.options.slider.maxValue) * 2;
+            percentage = percentage + ratio;
             /**
              * Element
              */
@@ -211,7 +213,7 @@
             self.model.width = newWidth;
             self.model.top = top;
             self.model.left = left;
-            self.model.scale = percentage;
+            self.model.scale = percentage - ratio;
 
             return self.model;
         }
@@ -250,8 +252,8 @@
         /**
          * Convert scale value to percentage
          */
-        function getPercentageFrom(val, max) {
-            return ((val * 100) / max).toFixed(0);
+        function getPercentageOf(val, max) {
+            return parseInt(((val * 100) / max).toFixed(0));
         }
 
         /**
@@ -459,7 +461,7 @@
              * Initialize with the initial value
              */
             self.sliderHandler.css({
-                left: getPercentageFrom(self.options.slider.initialValue, self.options.slider.maxValue) + '%'
+                left: getPercentageOf(self.options.slider.initialValue, self.options.slider.maxValue) + '%'
             });
 
             /**
@@ -491,9 +493,6 @@
                     posX = e.pageX - holderOffset;
                     posX = Math.min(Math.max(0, posX), sliderWidth);
                 }
-                self.sliderHandler.css({
-                    left: getPercentageFrom(posX, 200) + '%'
-                });
                 if (posX <= 0) {
                     self.slider.addClass('slider--minValue');
                     posX = 0;
@@ -506,7 +505,12 @@
                 } else {
                     self.slider.removeClass('slider--maxValue');
                 }
+                
+                self.sliderHandler.css({
+                    left: getPercentageOf(posX, 200) + '%'
+                });
 
+                
                 self.options.image.scale = posX;
 
                 resizeImage();
