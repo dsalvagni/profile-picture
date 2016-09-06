@@ -264,7 +264,7 @@
             if (imageFilePath) {
                 loadImage(imageFilePath);
             } else {
-                self.element.addClass('photo--empty');
+                self.photoArea.addClass('photo--empty');
             }
 
             if (isAdvancedUpload) {
