@@ -196,9 +196,7 @@
             if (left >= 0) {
                 left = 0;
             } else if (self.photoImg.width() + (left - parentLeft) < parentWidth) {
-                /* @TODO */
-                
-                
+               left = (self.photoImg.width() - parent.width()) * -1;
             }
             /**
              * Limit the area to drag vertically
