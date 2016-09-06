@@ -4,7 +4,9 @@
 
 ## Todo
 * Center image while zooming
+
 ---
+
 ## Getting started
 ```
 var pp = profilePicture(cssSelector, imageUrl?, options?);
