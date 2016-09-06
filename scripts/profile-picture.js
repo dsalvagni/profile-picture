@@ -288,7 +288,7 @@
 
             function readFile(file) {
 
-                self.photoArea.removeClass('photo--error');
+                self.photoArea.removeClass('photo--error photo--error--file-type photo--error-image-size');
 
                 if (!file.type.match('image.*')) {
                     self.photoArea.addClass('photo--error--file-type');
