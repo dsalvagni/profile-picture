@@ -22,7 +22,7 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 > When the slider's handles is on its minimum position
 
 #### maxValue
-> When the slider's handles is on its maxixum position
+> When the slider's handles is on its maximum position
 
 ### Image options
 
