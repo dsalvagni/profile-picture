@@ -111,6 +111,7 @@
             self.model.imageSrc = imageUrl;
 
             self.photoImg.attr('src', imageUrl)
+                .removeClass('hide')
                 .on('load', function () {
                     if (this.width < self.options.image.minWidth ||
                         this.height < self.options.image.minHeight) {
@@ -134,7 +135,6 @@
                     self.model.width = this.width;
                     self.model.scale = self.options.slider.initialValue;
                     resetSlider();
-                    $(this).removeClass('hide');
                     /**
                      * Call the onLoad callback
                      */
@@ -342,16 +342,17 @@
             self.element.on('change', 'input[type=file]', function (e) {
                 if (this.files && this.files.length) {
                     readFile(this.files[0]);
+                    this.value = '';
                 }
             });
 
             self.element.on('click', '.photo--empty .photo__circle', function (e) {
                 $(cssSelector + ' input[type=file]').trigger('click');
+                
             });
 
             self.element.on('click', '.remove', function (e) {
                 self.photoImg.addClass('hide').attr('src', null);
-                self.photoOptions.addClass('hide');
                 self.photoArea.addClass('photo--empty');
                 setModel({});
                 /**
