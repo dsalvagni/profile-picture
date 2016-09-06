@@ -121,8 +121,8 @@
                         /**
                        * Call the onError callback
                        */
-                        if (typeof self.defaults.onError === 'function') {
-                            self.defaults.onError('image-size');
+                        if (typeof self.options.onError === 'function') {
+                            self.options.onError('image-size');
                         }
                         return;
                     } else {
@@ -138,8 +138,8 @@
                     /**
                      * Call the onLoad callback
                      */
-                    if (typeof self.defaults.onLoad === 'function') {
-                        self.defaults.onLoad(self.model);
+                    if (typeof self.options.onLoad === 'function') {
+                        self.options.onLoad(self.model);
                     }
                 });
         }
@@ -150,14 +150,14 @@
             /**
              * Reset the slider scale values
              */
-            self.defaults.slider.initialValue = self.model.width;
-            self.defaults.slider.minValue = self.photoFrame.outerWidth();
-            self.defaults.slider.maxValue = self.model.originalWidth * 2;
+            self.options.slider.initialValue = self.model.width;
+            self.options.slider.minValue = self.photoFrame.outerWidth();
+            self.options.slider.maxValue = self.model.originalWidth * 2;
 
             self.slider.removeClass('slider--maxValue')
                 .removeClass('slider--minValue');
             self.sliderHandler.css({
-                left: getPercentageFrom(self.options.slider.initialValue, self.defaults.slider.maxValue)
+                left: getPercentageFrom(self.options.slider.initialValue, self.options.slider.maxValue)
             });
         }
 
@@ -241,8 +241,8 @@
             /**
              * Call the onChange callback
              */
-            if (typeof self.defaults.onChange === 'function') {
-                self.defaults.onChange(self.model);
+            if (typeof self.options.onChange === 'function') {
+                self.options.onChange(self.model);
             }
         }
 
@@ -271,7 +271,7 @@
                 self.element.addClass('is-simple-upload');
             }
 
-            self.options = $.extend(self.defaults, options);
+            self.options = $.extend({}, self.defaults, options);
 
             registerDropZoneEvents();
             registerImageDragEvents();
@@ -293,8 +293,8 @@
                     /**
                      * Call the onError callback
                      */
-                    if (typeof self.defaults.onError === 'function') {
-                        self.defaults.onError('file-type');
+                    if (typeof self.options.onError === 'function') {
+                        self.options.onError('file-type');
                     }
                     return;
                 }
@@ -315,8 +315,8 @@
                     /**
                      * Call the onError callback
                      */
-                    if (typeof self.defaults.onError === 'function') {
-                        self.defaults.onError('unknown');
+                    if (typeof self.options.onError === 'function') {
+                        self.options.onError('unknown');
                     }
                 }
                 reader.readAsDataURL(file);
@@ -358,8 +358,8 @@
                 /**
                  * Call the onRemove callback
                  */
-                if (typeof self.defaults.onRemove === 'function') {
-                    self.defaults.onRemove(self.model);
+                if (typeof self.options.onRemove === 'function') {
+                    self.options.onRemove(self.model);
                 }
             });
 
@@ -393,14 +393,14 @@
                     /**
                  * Call the onPositionChange callback
                  */
-                    if (typeof self.defaults.onPositionChange === 'function') {
-                        self.defaults.onPositionChange(self.model);
+                    if (typeof self.options.onPositionChange === 'function') {
+                        self.options.onPositionChange(self.model);
                     }
                     /**
                      * Call the onChange callback
                      */
-                    if (typeof self.defaults.onChange === 'function') {
-                        self.defaults.onChange(self.model);
+                    if (typeof self.options.onChange === 'function') {
+                        self.options.onChange(self.model);
                     }
                 }
                 $target = null;
@@ -517,8 +517,8 @@
                 /**
                  * Call the onSliderChange callback
                  */
-                if (typeof self.defaults.onSliderChange === 'function') {
-                    self.defaults.onSliderChange(self.model);
+                if (typeof self.options.onSliderChange === 'function') {
+                    self.options.onSliderChange(self.model);
                 }
             }
         }
