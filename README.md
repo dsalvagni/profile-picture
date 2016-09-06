@@ -3,9 +3,7 @@
 [Demo version](http://www.dsalvagni.com.br/profile-picture) | [Codepen](http://codepen.io/dsalvagni/pen/BLapab)
 
 ## Todo
-* Center image while zooming
-
-
+* Fix slider percentage
 
 ## Getting started
 Import the `profile-picture.js` and `profile-picture.css` to your project, then use the `html` template from the `index.html` file.

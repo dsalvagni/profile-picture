@@ -109,7 +109,6 @@
         function loadImage(imageUrl) {
 
             self.model.imageSrc = imageUrl;
-
             self.photoImg.attr('src', imageUrl)
                 .removeClass('hide')
                 .on('load', function () {
@@ -157,7 +156,7 @@
             self.slider.removeClass('slider--maxValue')
                 .removeClass('slider--minValue');
             self.sliderHandler.css({
-                left: getPercentageFrom(self.options.slider.initialValue, self.options.slider.maxValue)
+                left: getPercentageFrom(self.options.slider.initialValue, self.options.slider.maxValue) + '%'
             });
         }
 
@@ -184,27 +183,28 @@
             var parentWidth = parent.outerWidth();
             var parentHeight = parent.outerHeight();
 
-            var cdragtop=(self.photoImg.position().top-(parentWidth/2))/height;
-            var cdragleft=(self.photoImg.position().left-(parentWidth/2))/width;
-            var top = cdragtop*newHeight + (parentWidth/2);
-            var left = cdragleft*newWidth + (parentWidth/2);
+            var deltaTop = (self.photoImg.position().top - (parentWidth / 2)) / height;
+            var deltaLeft = (self.photoImg.position().left - (parentWidth / 2)) / width;
+            var top = deltaTop * newHeight + (parentWidth / 2);
+            var left = deltaLeft * newWidth + (parentWidth / 2);
 
-            
+
             /**
              * Limit the area to drag horizontally
              */
             if (left >= 0) {
                 left = 0;
-            } else if (self.photoImg.width() + (left - parentLeft) < parentWidth) {
-               left = (self.photoImg.width() - parent.width()) * -1;
+            } else if (newWidth + (left - parentLeft) < parentWidth) {
+                console.log((newWidth - parent.outerWidth()));
+                left = Math.abs((newWidth - parent.outerWidth())) * -1;
             }
             /**
              * Limit the area to drag vertically
              */
             if (top >= 0) {
                 top = 0;
-            } else if (self.photoImg.height() + (top - parentTop) < parentHeight) {
-                top = 0;                
+            } else if (newHeight + (top - parentTop) < parentHeight) {
+                top = Math.abs((newHeight - parentHeight)) * -1;
             }
 
             self.model.height = newHeight;
@@ -348,13 +348,15 @@
 
             self.element.on('click', '.photo--empty .photo__circle', function (e) {
                 $(cssSelector + ' input[type=file]').trigger('click');
-                
+
             });
 
             self.element.on('click', '.remove', function (e) {
-                self.photoImg.addClass('hide').attr('src', null);
+                self.photoImg.addClass('hide').attr('src', '')
+                    .attr('style', '');
                 self.photoArea.addClass('photo--empty');
                 setModel({});
+
                 /**
                  * Call the onRemove callback
                  */
@@ -490,7 +492,7 @@
                     posX = Math.min(Math.max(0, posX), sliderWidth);
                 }
                 self.sliderHandler.css({
-                    left: posX
+                    left: getPercentageFrom(posX, 200) + '%'
                 });
                 if (posX <= 0) {
                     self.slider.addClass('slider--minValue');
