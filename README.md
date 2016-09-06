@@ -11,6 +11,20 @@
 var pp = profilePicture(cssSelector, imageUrl?, options?);
 ```
 
+## Model
+```javascript
+{
+    imageSrc,
+    width,
+    height,
+    originalWidth,
+    originalHeight,
+    top,
+    left,
+    scale
+}
+```
+
 ## Options
 
 ### Slider options
