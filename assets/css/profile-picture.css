@@ -9,7 +9,8 @@ pre {
     max-height: 300px;
     overflow: auto;
 }
-
+/* IMMUTABLE */
+.hide { display: none !important;}
 * {
     box-sizing: border-box;
 }

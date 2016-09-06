@@ -111,7 +111,6 @@
             self.model.imageSrc = imageUrl;
 
             self.photoImg.attr('src', imageUrl)
-                .removeClass('hide')
                 .on('load', function () {
                     if (this.width < self.options.image.minWidth ||
                         this.height < self.options.image.minHeight) {
@@ -135,6 +134,7 @@
                     self.model.width = this.width;
                     self.model.scale = self.options.slider.initialValue;
                     resetSlider();
+                    $(this).removeClass('hide');
                     /**
                      * Call the onLoad callback
                      */
