@@ -167,6 +167,7 @@
                     resetSlider();
                     scaleImage(0);
                     $(this).removeClass('hide');
+                    self.photoOptions.removeClass('hide');
                     /**
                      * Call the onLoad callback
                      */
@@ -572,7 +573,6 @@
              * Allow the user to control the slider from his keyboard
              */
             function keyboardNavigation(e) {
-                console.log(e);
                 if (e.keyCode == '37') {
                     moveHandler(e, self.options.image.scale-1);
                 }
