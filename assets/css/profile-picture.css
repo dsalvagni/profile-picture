@@ -131,8 +131,8 @@ pre {
 
 .photo__circle {
     display: inline-block;
-    width: 200px;
-    height: 200px;
+    width: 160px;
+    height: 160px;
     border: 1px solid #e2e2e2;
     border-radius: 50%;
     overflow: hidden;
