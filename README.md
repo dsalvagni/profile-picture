@@ -23,7 +23,9 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
     originalHeight,
     top,
     left,
-    scale
+    scale,
+    cropWidth,
+    cropHeight
 }
 ```
 

@@ -68,6 +68,7 @@ pre {
 
 .slider__area {
     position: relative;
+    height: inherit;
 }
 
 .slider__line {

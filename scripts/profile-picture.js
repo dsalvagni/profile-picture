@@ -37,7 +37,9 @@
             originalHeight: null,
             top: null,
             left: null,
-            scale: null
+            scale: null,
+            cropWidth: null,
+            cropHeight: null
         };
 
 
@@ -164,6 +166,8 @@
                     self.model.height = this.height;
                     self.model.width = this.width;
                     self.model.scale = self.options.slider.initialValue;
+                    self.model.cropWidth = self.options.photoFrame.outerWidth();
+                    self.model.cropHeight = self.options.photoFrame.outerHeight();
                     resetSlider();
                     scaleImage(0);
                     $(this).removeClass('hide');
@@ -462,14 +466,16 @@
             /**
              * Get the image info
              */
-            self.photoImg.on("mousedown", function (e) {
+            self.photoImg.on("mousedown touchstart", function (e) {
                 $target = $(e.target);
+                var pageX = e.pageX || e.touches[0].pageX;
+                var pageY = e.pageY || e.touches[0].pageY;
                 /**
                  * Firefox
                  */
                 if (e.offsetX == undefined) {
-                    x = e.pageX - $(this).offset().left;
-                    y = e.pageY - $(this).offset().top;
+                    x = pageX - $(this).offset().left;
+                    y = pageY - $(this).offset().top;
                 } else {
                     x = e.offsetX;
                     y = e.offsetY;
@@ -479,7 +485,7 @@
             /**
              * Stop dragging
              */
-            $(document).on("mouseup", function (e) {
+            $(document).on("mouseup touchend", function (e) {
                 if ($target) {
                     /**
                  * Call the onPositionChange callback
@@ -499,10 +505,14 @@
             /**
              * Drag the image inside the container
              */
-            $(document).on("mousemove", function (e) {
+            $(document).on("mousemove touchmove", function (e) {
+
                 if ($target) {
-                    var top = (e.pageY) - y;
-                    var left = (e.pageX) - x;
+                    var pageX = e.pageX || e.touches[0].pageX;
+                    var pageY = e.pageY || e.touches[0].pageY;
+
+                    var top = (pageY) - y;
+                    var left = (pageX) - x;
                     var parent = $target.parent();
                     var parentLeft = parent.offset().left;
                     var parentTop = parent.offset().top;
@@ -560,13 +570,24 @@
             /**
              * The focus event allow us to change the slider position with the keyboard.
              */
-            self.sliderHandler.on('mousedown focus', function (e) {
+            self.sliderHandler.on('mousedown focus touchstart', function (e) {
                 holderOffset = self.sliderArea.offset().left;
                 startOffset = self.sliderHandler.offset().left - holderOffset;
                 sliderWidth = self.sliderArea.width();
 
-                $(document).on('mousemove', moveHandler);
-                $(document).on('mouseup blur', stopHandler);
+                $(document).on('mousemove touchmove', moveHandler);
+                $(document).on('mouseup blur touchend', stopHandler);
+            });
+
+            /**
+             * Allow the user to click on the slider to scale
+             */
+            self.sliderArea.on('click', function (e) {
+                e.preventDefault();
+                holderOffset = self.sliderArea.offset().left;
+                startOffset = self.sliderHandler.offset().left - holderOffset;
+                sliderWidth = self.sliderArea.width();
+                moveHandler(e);
             });
 
             /**
@@ -574,18 +595,19 @@
              */
             function keyboardNavigation(e) {
                 if (e.keyCode == '37') {
-                    moveHandler(e, self.options.image.scale-1);
+                    moveHandler(e, self.options.image.scale - 1);
                 }
                 else if (e.keyCode == '39') {
-                    moveHandler(e, self.options.image.scale+1);
+                    moveHandler(e, self.options.image.scale + 1);
                 }
             }
             /**
              * Calculates the percentage by the slider handler position and then scale the image
              */
             function moveHandler(e, percentage) {
+                var pageX = e.pageX || e.touches[0].pageX;
                 if (!percentage) {
-                    percentage = e.pageX - holderOffset;
+                    percentage = pageX - holderOffset;
                     percentage = Math.min(Math.max(0, percentage), sliderWidth);
                     percentage = getPercentageOf(percentage, 200);
                 }
@@ -595,8 +617,8 @@
              * Unregister the slider events
              */
             function stopHandler() {
-                $(document).off('mousemove', moveHandler);
-                $(document).off('mouseup', stopHandler);
+                $(document).off('mousemove touchmove', moveHandler);
+                $(document).off('mouseup touchend touchleave touchcancel', stopHandler);
                 self.sliderHandler.off('keypress');
                 self.sliderHandler.off('focus');
                 /**
@@ -609,3 +631,4 @@
         }
     }
 })(window, jQuery);
+
