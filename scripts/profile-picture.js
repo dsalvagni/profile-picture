@@ -605,8 +605,9 @@
              * Calculates the percentage by the slider handler position and then scale the image
              */
             function moveHandler(e, percentage) {
-                var pageX = e.pageX || e.touches[0].pageX;
+                
                 if (!percentage) {
+                    var pageX = e.pageX || e.touches[0].pageX;
                     percentage = pageX - holderOffset;
                     percentage = Math.min(Math.max(0, percentage), sliderWidth);
                     percentage = getPercentageOf(percentage, 200);
