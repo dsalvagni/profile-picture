@@ -166,8 +166,8 @@
                     self.model.height = this.height;
                     self.model.width = this.width;
                     self.model.scale = self.options.slider.initialValue;
-                    self.model.cropWidth = self.options.photoFrame.outerWidth();
-                    self.model.cropHeight = self.options.photoFrame.outerHeight();
+                    self.model.cropWidth = self.photoFrame.outerWidth();
+                    self.model.cropHeight = self.photoFrame.outerHeight();
                     resetSlider();
                     scaleImage(0);
                     $(this).removeClass('hide');
