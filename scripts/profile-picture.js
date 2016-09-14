@@ -171,7 +171,6 @@
                     self.model.cropWidth = self.photoFrame.outerWidth();
                     self.model.cropHeight = self.photoFrame.outerHeight();
                     resetSlider();
-                    scaleImage(0);
                     $(this).removeClass('hide');
                     self.photoOptions.removeClass('hide');
                     /**
@@ -215,7 +214,6 @@
             var height = self.photoImg.height();
             var top = self.photoImg.position().top;
             var left = self.photoImg.position().left;
-
             /**
              * Container
              */
