@@ -98,7 +98,9 @@
          */
         return {
             getData: getData,
-            scaleImage: scaleImage,
+            scaleImage: function(scale) {
+                scaleImage(scale/2);
+            },
             removeImage: removeImage
         };
 
