@@ -324,9 +324,9 @@
             /**
              * Set a css class to the slider if it gets to its maximum value
              */
-            if (percentage >= 200) {
+            if (percentage >= 100) {
                 self.slider.addClass('slider--maxValue');
-                percentage = 200;
+                percentage = 100;
             } else {
                 self.slider.removeClass('slider--maxValue');
             }
@@ -335,7 +335,7 @@
                 left: percentage + '%'
             });
 
-            self.options.image.scale = percentage;
+            self.options.image.scale = percentage * 2;
 
             resizeImage();
         }
@@ -595,10 +595,10 @@
              */
             function keyboardNavigation(e) {
                 if (e.keyCode == '37') {
-                    moveHandler(e, self.options.image.scale - 1);
+                    moveHandler(e, (self.options.image.scale - 1)/2);
                 }
                 else if (e.keyCode == '39') {
-                    moveHandler(e, self.options.image.scale + 1);
+                    moveHandler(e, (self.options.image.scale + 1)/2);
                 }
             }
             /**
