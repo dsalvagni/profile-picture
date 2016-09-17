@@ -98,7 +98,7 @@
          */
         return {
             getData: getData,
-            scaleImage: function(scale) {
+            scaleImage: function(scale) {  
                 scaleImage(scale/2);
             },
             removeImage: removeImage
@@ -214,6 +214,7 @@
             var height = self.photoImg.height();
             var top = self.photoImg.position().top;
             var left = self.photoImg.position().left;
+            
             /**
              * Container
              */
