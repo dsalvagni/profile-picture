@@ -98,7 +98,9 @@
          */
         return {
             getData: getData,
-            scaleImage: scaleImage,
+            scaleImage: function(scale) {
+                 scaleImage(scale/2);
+            },
             removeImage: removeImage
         };
 
@@ -169,7 +171,6 @@
                     self.model.cropWidth = self.photoFrame.outerWidth();
                     self.model.cropHeight = self.photoFrame.outerHeight();
                     resetSlider();
-                    scaleImage(0);
                     $(this).removeClass('hide');
                     self.photoOptions.removeClass('hide');
                     /**
@@ -324,9 +325,9 @@
             /**
              * Set a css class to the slider if it gets to its maximum value
              */
-            if (percentage >= 200) {
+            if (percentage >= 100) {
                 self.slider.addClass('slider--maxValue');
-                percentage = 200;
+                percentage = 100;
             } else {
                 self.slider.removeClass('slider--maxValue');
             }
@@ -335,7 +336,7 @@
                 left: percentage + '%'
             });
 
-            self.options.image.scale = percentage;
+            self.options.image.scale = percentage * 2;
 
             resizeImage();
         }
@@ -595,10 +596,10 @@
              */
             function keyboardNavigation(e) {
                 if (e.keyCode == '37') {
-                    moveHandler(e, self.options.image.scale - 1);
+                    moveHandler(e, (self.options.image.scale - 1)/2);
                 }
                 else if (e.keyCode == '39') {
-                    moveHandler(e, self.options.image.scale + 1);
+                    moveHandler(e, (self.options.image.scale + 1)/2);
                 }
             }
             /**
