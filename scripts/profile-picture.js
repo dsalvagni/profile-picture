@@ -21,11 +21,12 @@
          * Map the DOM elements
          */
         self.element = $(cssSelector);
-        self.photoImg = $(cssSelector + ' .photo__circle img');
-        self.photoLoading = $(cssSelector + ' .photo__circle .message.is-loading');
+        self.photoImg = $(cssSelector + ' .photo__frame img');
+        self.photoLoading = $(cssSelector + ' .photo__frame .message.is-loading');
         self.photoOptions = $(cssSelector + ' .photo__options');
-        self.photoFrame = $(cssSelector + ' .photo__circle');
+        self.photoFrame = $(cssSelector + ' .photo__frame');
         self.photoArea = $(cssSelector + ' .photo');
+        self.zoomControl = $(cssSelector + ' input[type=range]');
         /**
          * Image info to post to the API
          */
@@ -35,9 +36,9 @@
             height: null,
             originalWidth: null,
             originalHeight: null,
-            top: null,
-            left: null,
-            scale: null,
+            y: null,
+            x: null,
+            zoom: 1,
             cropWidth: null,
             cropHeight: null
         };
@@ -55,19 +56,20 @@
          * Callbacks
          */
         self.defaults.onChange = null;
-        self.defaults.onSliderChange = null;
+        self.defaults.onZoomChange = null;
         self.defaults.onImageSizeChange = null;
         self.defaults.onPositionChange = null;
         self.defaults.onLoad = null;
         self.defaults.onRemove = null;
         self.defaults.onError = null;
         /**
-         * Slider default options
+         * Zoom default options
          */
-        self.defaults.slider = {
-            initialValue: 100,
-            minValue: 1,
-            maxValue: 200
+        self.defaults.zoom = {
+            initialValue: 1,
+            minValue: 0.1,
+            maxValue: 2,
+            step: 0.01
         };
         /**
          * Image default options
@@ -75,18 +77,16 @@
         self.defaults.image = {
             originalWidth: 0,
             originalHeight: 0,
-            originalTop: 0,
-            originalLeft: 0,
+            originaly: 0,
+            originalX: 0,
             minWidth: 350,
             minHeight: 350
         };
 
         /**
-         * Slider controls
+         * Zoom controls
          */
-        self.slider = $(cssSelector + ' .slider');
-        self.sliderArea = $(cssSelector + ' .slider__area');
-        self.sliderHandler = $(cssSelector + ' .slider__handler');
+        self.zoom = $(cssSelector + ' .zoom');
 
         /**
          * Call the constructor
@@ -98,9 +98,6 @@
          */
         return {
             getData: getData,
-            scaleImage: function(scale) {  
-                scaleImage(scale/2);
-            },
             removeImage: removeImage
         };
 
@@ -122,7 +119,7 @@
 
             registerDropZoneEvents();
             registerImageDragEvents();
-            registerSliderControlEvents();
+            registerZoomEvents();
         }
 
         /**
@@ -142,11 +139,12 @@
          * Load the image info an set image source
          */
         function loadImage(imageUrl) {
-
+            var loaded = false;
             self.model.imageSrc = imageUrl;
             self.photoArea.addClass('photo--loading');
             self.photoImg.attr('src', imageUrl)
                 .on('load', function () {
+                    if (loaded) return;
                     if (this.width < self.options.image.minWidth ||
                         this.height < self.options.image.minHeight) {
                         self.photoArea.addClass('photo--error--image-size photo--empty');
@@ -167,10 +165,10 @@
                     self.model.originalWidth = this.width;
                     self.model.height = this.height;
                     self.model.width = this.width;
-                    self.model.scale = self.options.slider.initialValue;
                     self.model.cropWidth = self.photoFrame.outerWidth();
                     self.model.cropHeight = self.photoFrame.outerHeight();
-                    resetSlider();
+                    fitToFrame();
+                    render();
                     $(this).removeClass('hide');
                     self.photoOptions.removeClass('hide');
                     /**
@@ -179,167 +177,11 @@
                     if (typeof self.options.onLoad === 'function') {
                         self.options.onLoad(self.model);
                     }
+
+                    loaded = true;
                 });
         }
-        /**
-         * Reset the slider handler to the default position
-         */
-        function resetSlider() {
-            /**
-             * Reset the slider scale values
-             */
-            self.options.slider.initialValue = self.model.width;
-            self.options.slider.minValue = self.photoFrame.outerWidth();
-            self.options.slider.maxValue = self.model.originalWidth * 2;
 
-            self.slider.removeClass('slider--maxValue')
-                .removeClass('slider--minValue');
-            self.sliderHandler.css({
-                left: getPercentageOf(self.options.slider.initialValue, self.options.slider.maxValue) + '%'
-            });
-        }
-
-        /**
-         * Helper to calculate the new image's size
-         */
-        function calcNewImageSize(percentage) {
-            var ratio = getPercentageOf(self.options.slider.minValue, self.options.slider.maxValue) * 2;
-            percentage = percentage + ratio;
-            /**
-             * Element
-             */
-            var newWidth = ((percentage * self.model.originalWidth) / 100);
-            var width = self.photoImg.width();
-            var newHeight = ((percentage * self.model.originalHeight) / 100);
-            var height = self.photoImg.height();
-            var top = self.photoImg.position().top;
-            var left = self.photoImg.position().left;
-            
-            /**
-             * Container
-             */
-            var parent = self.photoImg.parent();
-            var parentLeft = parent.offset().left;
-            var parentTop = parent.offset().top;
-            var parentWidth = parent.outerWidth();
-            var parentHeight = parent.outerHeight();
-            /**
-             * Calculates the image position to keep it centered
-             */
-            var deltaTop = (self.photoImg.position().top - (parentWidth / 2)) / height;
-            var deltaLeft = (self.photoImg.position().left - (parentWidth / 2)) / width;
-            var top = deltaTop * newHeight + (parentWidth / 2);
-            var left = deltaLeft * newWidth + (parentWidth / 2);
-
-
-            /**
-             * Limit the area to drag horizontally
-             */
-            if (left >= 0) {
-                left = 0;
-            } else if (newWidth + (left - parentLeft) < parentWidth) {
-                /**
-                 * Calculates to handle the empty space on the right side
-                 */
-                left = Math.abs((newWidth - parent.outerWidth())) * -1;
-            }
-            /**
-             * Limit the area to drag vertically
-             */
-            if (top >= 0) {
-                top = 0;
-            } else if (newHeight + (top - parentTop) < parentHeight) {
-                /**
-                 * Calculates to handle the empty space on bottom
-                 */
-                top = Math.abs((newHeight - parentHeight)) * -1;
-            }
-            /**
-             * Set the model
-             */
-            self.model.height = newHeight;
-            self.model.width = newWidth;
-            self.model.top = top;
-            self.model.left = left;
-            self.model.scale = percentage - ratio;
-
-            return self.model;
-        }
-
-        /**
-         * Helper to resize the image
-         */
-        function resizeImage() {
-            if (self.options.image.scale < 0) return;
-
-            var newSize = calcNewImageSize(self.options.image.scale);
-
-            /**
-             * Limit the image size to the container size.
-             */
-            if (newSize.width < self.photoFrame.outerWidth()) {
-                return;
-            }
-            if (newSize.height < self.photoFrame.outerHeight()) {
-                return;
-            }
-            self.photoImg.css({
-                width: newSize.width,
-                top: newSize.top,
-                left: newSize.left
-            });
-            /**
-             * Call the onChange callback
-             */
-            if (typeof self.options.onChange === 'function') {
-                self.options.onChange(self.model);
-            }
-            /**
-             * Call the onImageSizeChange callback
-             */
-            if (typeof self.options.onImageSizeChange === 'function') {
-                self.options.onImageSizeChange(self.model);
-            }
-        }
-
-        /**
-         * Convert scale value to percentage
-         */
-        function getPercentageOf(val, max) {
-            return parseInt(((val * 100) / max).toFixed(0));
-        }
-        /**
-         * Change the image size by a percentage.
-         * Updates the slider values as well.
-         */
-        function scaleImage(percentage) {
-            /**
-             * Set a css class to the slider if it gets to its minimum value
-             */
-            if (percentage <= 0) {
-                self.slider.addClass('slider--minValue');
-                percentage = 0;
-            } else {
-                self.slider.removeClass('slider--minValue');
-            }
-            /**
-             * Set a css class to the slider if it gets to its maximum value
-             */
-            if (percentage >= 100) {
-                self.slider.addClass('slider--maxValue');
-                percentage = 100;
-            } else {
-                self.slider.removeClass('slider--maxValue');
-            }
-
-            self.sliderHandler.css({
-                left: percentage + '%'
-            });
-
-            self.options.image.scale = percentage * 2;
-
-            resizeImage();
-        }
         /**
          * Remove the image and reset the component state
          */
@@ -399,7 +241,7 @@
             /**
              * Handle the click to the hidden input file so we can browser files.
              */
-            self.element.on('click', '.photo--empty .photo__circle', function (e) {
+            self.element.on('click', '.photo--empty .photo__frame', function (e) {
                 $(cssSelector + ' input[type=file]').trigger('click');
 
             });
@@ -463,24 +305,24 @@
          * Register the image drag events
          */
         function registerImageDragEvents() {
-            var $target, x, y;
+            var $target, x, y, frameX, frameY, clientX, clientY;
+
+            frameX = self.photoFrame.offset().left;
+            frameY = self.photoFrame.offset().top;
             /**
              * Get the image info
              */
             self.photoImg.on("mousedown touchstart", function (e) {
                 $target = $(e.target);
-                var pageX = e.pageX || e.touches[0].pageX;
-                var pageY = e.pageY || e.touches[0].pageY;
-                /**
-                 * Firefox
-                 */
-                if (e.offsetX == undefined) {
-                    x = pageX - $(this).offset().left;
-                    y = pageY - $(this).offset().top;
-                } else {
-                    x = e.offsetX;
-                    y = e.offsetY;
-                };
+                clientX = e.clientX;
+                clientY = e.clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX
+                    clientY = e.touches[0].clientY
+                }
+                x = clientX - $(this).position().left;
+                y = clientY - $(this).position().top;
+
 
             });
             /**
@@ -489,8 +331,8 @@
             $(document).on("mouseup touchend", function (e) {
                 if ($target) {
                     /**
-                 * Call the onPositionChange callback
-                 */
+                     * Call the onPositionChange callback
+                     */
                     if (typeof self.options.onPositionChange === 'function') {
                         self.options.onPositionChange(self.model);
                     }
@@ -509,128 +351,175 @@
             $(document).on("mousemove touchmove", function (e) {
 
                 if ($target) {
-                    var pageX = e.pageX || e.touches[0].pageX;
-                    var pageY = e.pageY || e.touches[0].pageY;
+                    var refresh = false;
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                    if (e.touches) {
+                        clientX = e.touches[0].clientX
+                        clientY = e.touches[0].clientY
+                    }
 
-                    var top = (pageY) - y;
-                    var left = (pageX) - x;
-                    var parent = $target.parent();
-                    var parentLeft = parent.offset().left;
-                    var parentTop = parent.offset().top;
-                    var parentWidth = parent.outerWidth();
-                    var parentHeight = parent.outerHeight();
+                    var dy = (clientY) - y;
+                    var dx = (clientX) - x;
+                    dx = Math.min(dx, 0);
+                    dy = Math.min(dy, 0);
                     /**
                      * Limit the area to drag horizontally
                      */
-                    if (left >= parentLeft) {
-                        left = parentLeft;
-                    } else if ($target.width() + (left - parentLeft) < parentWidth) {
-                        return;
+                    if ($target.width() + dx >= self.model.cropWidth) {
+                        self.model.x = dx;
+                        refresh = true;
                     }
-                    /**
-                     * Limit the area to drag vertically
-                     */
-                    if (top >= parentTop) {
-                        top = parentTop
-                    } else if ($target.height() + (top - parentTop) < parentHeight) {
-                        return;
+                    if ($target.height() + dy >= self.model.cropHeight) {
+                        self.model.y = dy;
+                        refresh = true;
                     }
-
-                    self.model.top = top;
-                    self.model.left = left;
-
-                    $target.offset({
-                        top: top,
-                        left: left
-                    });
+                    if (refresh) {
+                        render();
+                    }
                 };
             });
         }
-        /**
-         * Register the slider control events
-         */
-        function registerSliderControlEvents() {
-            /**
-             * Init
-             */
-            var startOffset,
-                holderOffset,
-                sliderWidth,
-                handleWidth;
-            /**
-             * Initialize with the initial value
-             */
-            self.sliderHandler.css({
-                left: getPercentageOf(self.options.slider.initialValue, self.options.slider.maxValue) + '%'
-            });
 
-            /**
-             * Register the mouse and keyboard events
-             */
-            self.sliderHandler.on('keydown', keyboardNavigation);
-            /**
-             * The focus event allow us to change the slider position with the keyboard.
-             */
-            self.sliderHandler.on('mousedown focus touchstart', function (e) {
-                holderOffset = self.sliderArea.offset().left;
-                startOffset = self.sliderHandler.offset().left - holderOffset;
-                sliderWidth = self.sliderArea.width();
+        function registerZoomEvents() {
 
-                $(document).on('mousemove touchmove', moveHandler);
-                $(document).on('mouseup blur touchend', stopHandler);
-            });
+            self.zoomControl
+                .attr('min', self.options.zoom.minValue)
+                .attr('max', self.options.zoom.maxValue)
+                .attr('step', self.options.zoom.step)
+                .val(self.options.zoom.initialValue)
+                .on('input', zoomChange);
 
-            /**
-             * Allow the user to click on the slider to scale
-             */
-            self.sliderArea.on('click', function (e) {
-                e.preventDefault();
-                holderOffset = self.sliderArea.offset().left;
-                startOffset = self.sliderHandler.offset().left - holderOffset;
-                sliderWidth = self.sliderArea.width();
-                moveHandler(e);
-            });
-
-            /**
-             * Allow the user to control the slider from his keyboard
-             */
-            function keyboardNavigation(e) {
-                if (e.keyCode == '37') {
-                    moveHandler(e, (self.options.image.scale - 1)/2);
-                }
-                else if (e.keyCode == '39') {
-                    moveHandler(e, (self.options.image.scale + 1)/2);
-                }
-            }
-            /**
-             * Calculates the percentage by the slider handler position and then scale the image
-             */
-            function moveHandler(e, percentage) {
-                
-                if (!percentage) {
-                    var pageX = e.pageX || e.touches[0].pageX;
-                    percentage = pageX - holderOffset;
-                    percentage = Math.min(Math.max(0, percentage), sliderWidth);
-                    percentage = getPercentageOf(percentage, 200);
-                }
-                scaleImage(percentage);
-            }
-            /**
-             * Unregister the slider events
-             */
-            function stopHandler() {
-                $(document).off('mousemove touchmove', moveHandler);
-                $(document).off('mouseup touchend touchleave touchcancel', stopHandler);
-                self.sliderHandler.off('keypress');
-                self.sliderHandler.off('focus');
+            function zoomChange(e) {
+                self.model.zoom = Number(this.value);
+                updateZoomIndicator();
+                scaleImage();
                 /**
-                 * Call the onSliderChange callback
+                 * Call the onPositionChange callback
                  */
-                if (typeof self.options.onSliderChange === 'function') {
-                    self.options.onSliderChange(self.model);
+                if (typeof self.options.onZoomChange === 'function') {
+                    self.options.onZoomChange(self.model);
                 }
             }
         }
+
+        /**
+         * Resize the image
+         */
+        
+        function scaleImage() {
+            /**
+             * Calculates the image position to keep it centered
+             */
+            var newWidth = self.model.originalWidth * self.model.zoom;
+            var newHeight = self.model.originalHeight * self.model.zoom;
+
+            var deltaY = (self.photoImg.position().top - (self.model.cropHeight / 2)) / self.model.height;
+            var deltaX = (self.photoImg.position().left - (self.model.cropWidth / 2)) / self.model.width;
+            var y = (deltaY * newHeight + (self.model.cropHeight / 2));
+            var x = (deltaX * newWidth + (self.model.cropWidth / 2));
+
+            x = Math.min(x,0);
+            y = Math.min(y,0);
+
+            if (newWidth + (x) < self.model.cropWidth) {
+                /**
+                 * Calculates to handle the empty space on the right side
+                 */
+                x = Math.abs((newWidth - self.model.cropWidth)) * -1;
+            }
+            if (newHeight + (y) < self.model.cropHeight) {
+                /**
+                 * Calculates to handle the empty space on bottom
+                 */
+                y = Math.abs((newHeight - self.model.cropHeight)) * -1;
+            }
+            /**
+             * Set the model
+             */
+            self.model.width = newWidth;
+            self.model.height = newHeight;
+            self.model.x = x;
+            self.model.y = y;
+            updateZoomIndicator();
+            render();
+
+            /**
+             * Call the onImageSizeChange callback
+             */
+            if (typeof self.options.onImageSizeChange === 'function') {
+                self.options.onImageSizeChange(self.model);
+            }
+        }
+
+        /**
+         * Updates the icon state from the slider
+         */
+        function updateZoomIndicator() {
+            /**
+             * Updates the zoom icon state
+             */
+            if (self.model.zoom == self.zoomControl.attr('min')) {
+                self.zoomControl.addClass('zoom--minValue');
+            } else {
+                self.zoomControl.removeClass('zoom--minValue');
+            }
+            if (self.model.zoom == self.zoomControl.attr('max')) {
+                self.zoomControl.addClass('zoom--maxValue');
+            } else {
+                self.zoomControl.removeClass('zoom--maxValue');
+            }
+        }
+
+        /**
+         * Resize and position the image to fit into the frame
+         */
+        function fitToFrame() {
+            var newHeight, newWidth, scaleRatio;
+
+            var frameRatio = self.model.cropHeight / self.model.cropWidth;
+            var imageRatio = self.model.height / self.model.width;
+
+            if (frameRatio > imageRatio) {
+                newHeight = self.model.cropHeight;
+                scaleRatio = (newHeight / self.model.height).toFixed(2);
+                newWidth = self.model.width * scaleRatio;
+            } else {
+                newWidth = self.model.cropWidth;
+                scaleRatio = (newWidth / self.model.width).toFixed(2);
+                newHeight = self.model.height * scaleRatio;
+            }
+            self.model.zoom = scaleRatio;
+
+            self.zoomControl
+                .attr('min', scaleRatio)
+                .attr('max', self.options.zoom.maxValue - scaleRatio)
+                .val(scaleRatio);
+
+            updateZoomIndicator();
+            self.model.height = newHeight;
+            self.model.width = newWidth;
+        }
+        /**
+         * Update image's position and size
+         */
+        function render() {
+            self.photoImg
+                .css({
+                    top: self.model.y,
+                    left: self.model.x,
+                    width: self.model.width,
+                    height: self.model.height
+                });
+
+            /**
+             * Call the onChange callback
+             */
+            if (typeof self.options.onChange === 'function') {
+                self.options.onChange(self.model);
+            }
+        }
+
     }
 })(window, jQuery);
 
