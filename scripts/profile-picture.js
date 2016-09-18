@@ -380,7 +380,9 @@
                 };
             });
         }
-
+        /**
+         * Register the zoom control events
+         */
         function registerZoomEvents() {
 
             self.zoomControl
@@ -402,25 +404,42 @@
                 }
             }
         }
-
         /**
-         * Resize the image
+         * Set the image to the center of the frame
          */
-        
-        function scaleImage() {
-            /**
-             * Calculates the image position to keep it centered
-             */
-            var newWidth = self.model.originalWidth * self.model.zoom;
-            var newHeight = self.model.originalHeight * self.model.zoom;
+        function centerImage() {
+            var y = (self.model.cropHeight / 2) * -1;
+            var x = (self.model.cropWidth / 2) * -1;
 
+            x = Math.min(x, 0);
+            y = Math.min(y, 0);
+
+            if (self.model.width + (x) < self.model.cropWidth) {
+                /**
+                 * Calculates to handle the empty space on the right side
+                 */
+                x = Math.abs((self.model.width - self.model.cropWidth)) * -1;
+            }
+            if (self.model.height + (y) < self.model.cropHeight) {
+                /**
+                 * Calculates to handle the empty space on bottom
+                 */
+                y = Math.abs((self.model.height - self.model.cropHeight)) * -1;
+            }
+            self.model.x = x;
+            self.model.y = y;
+        }
+        /**
+         * Calculates the new image's position based in its new size
+         */
+        function getPosition(newWidth, newHeight) {
             var deltaY = (self.photoImg.position().top - (self.model.cropHeight / 2)) / self.model.height;
             var deltaX = (self.photoImg.position().left - (self.model.cropWidth / 2)) / self.model.width;
             var y = (deltaY * newHeight + (self.model.cropHeight / 2));
             var x = (deltaX * newWidth + (self.model.cropWidth / 2));
 
-            x = Math.min(x,0);
-            y = Math.min(y,0);
+            x = Math.min(x, 0);
+            y = Math.min(y, 0);
 
             if (newWidth + (x) < self.model.cropWidth) {
                 /**
@@ -434,13 +453,27 @@
                  */
                 y = Math.abs((newHeight - self.model.cropHeight)) * -1;
             }
+            return { x: x, y: y };
+        }
+        /**
+         * Resize the image
+         */
+        function scaleImage() {
+            /**
+             * Calculates the image position to keep it centered
+             */
+            var newWidth = self.model.originalWidth * self.model.zoom;
+            var newHeight = self.model.originalHeight * self.model.zoom;
+
+            var position = getPosition(newWidth, newHeight);
+
             /**
              * Set the model
              */
             self.model.width = newWidth;
             self.model.height = newHeight;
-            self.model.x = x;
-            self.model.y = y;
+            self.model.x = position.x;
+            self.model.y = position.y;
             updateZoomIndicator();
             render();
 
@@ -496,9 +529,10 @@
                 .attr('max', self.options.zoom.maxValue - scaleRatio)
                 .val(scaleRatio);
 
-            updateZoomIndicator();
             self.model.height = newHeight;
             self.model.width = newWidth;
+            centerImage();            
+            updateZoomIndicator();
         }
         /**
          * Update image's position and size
