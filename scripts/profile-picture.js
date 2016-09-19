@@ -141,6 +141,7 @@
          */
         function processFile(imageUrl) {
             var image = new Image();
+            self.photoArea.addClass('photo--loading');
             image.onload = function () {
                 var canvas = document.createElement('canvas');
                 canvas.width = this.width;
