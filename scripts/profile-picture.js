@@ -167,6 +167,8 @@
                     self.model.width = this.width;
                     self.model.cropWidth = self.photoFrame.outerWidth();
                     self.model.cropHeight = self.photoFrame.outerHeight();
+                    self.model.x = 0;
+                    self.model.y = 0;
                     fitToFrame();
                     render();
                     $(this).removeClass('hide');
@@ -328,7 +330,7 @@
             /**
              * Stop dragging
              */
-            $(document).on("mouseup touchend", function (e) {
+            $(window).on("mouseup touchend", function (e) {
                 if ($target) {
                     /**
                      * Call the onPositionChange callback
@@ -348,9 +350,9 @@
             /**
              * Drag the image inside the container
              */
-            $(document).on("mousemove touchmove", function (e) {
-
+            $(window).on("mousemove touchmove", function (e) {                
                 if ($target) {
+                    e.preventDefault();
                     var refresh = false;
                     clientX = e.clientX;
                     clientY = e.clientY;
@@ -408,9 +410,10 @@
          * Set the image to the center of the frame
          */
         function centerImage() {
-            var y = (self.model.cropHeight / 2) * -1;
-            var x = (self.model.cropWidth / 2) * -1;
-
+            var x = Math.abs(self.model.x - ((self.model.width - self.model.cropWidth)/2));
+            var y = Math.abs(self.model.y - ((self.model.height - self.model.cropHeight)/2));
+            x = self.model.x - x;
+            y = self.model.y - y;
             x = Math.min(x, 0);
             y = Math.min(y, 0);
 
@@ -433,11 +436,12 @@
          * Calculates the new image's position based in its new size
          */
         function getPosition(newWidth, newHeight) {
+
             var deltaY = (self.photoImg.position().top - (self.model.cropHeight / 2)) / self.model.height;
             var deltaX = (self.photoImg.position().left - (self.model.cropWidth / 2)) / self.model.width;
             var y = (deltaY * newHeight + (self.model.cropHeight / 2));
             var x = (deltaX * newWidth + (self.model.cropWidth / 2));
-
+            
             x = Math.min(x, 0);
             y = Math.min(y, 0);
 
@@ -446,6 +450,7 @@
                  * Calculates to handle the empty space on the right side
                  */
                 x = Math.abs((newWidth - self.model.cropWidth)) * -1;
+
             }
             if (newHeight + (y) < self.model.cropHeight) {
                 /**
@@ -530,9 +535,9 @@
                 .val(scaleRatio);
 
             self.model.height = newHeight;
-            self.model.width = newWidth;
-            centerImage();            
+            self.model.width = newWidth;           
             updateZoomIndicator();
+            centerImage();
         }
         /**
          * Update image's position and size
