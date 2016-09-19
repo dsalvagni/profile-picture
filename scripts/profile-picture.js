@@ -6,8 +6,11 @@
 
 /**
  * Turn the globals into local variables.
+ * @deps:
+ *  - JavaScript Load Image <https://github.com/blueimp/JavaScript-Load-Image> 
+ *    Used to fix the EXIF orientation from camera picture uploads
  */
-; (function (window, $, undefined) {
+; (function (window, $, loadImage, undefined) {
     if (!window.profilePicture) {
         window.profilePicture = profilePicture;
     }
@@ -112,7 +115,7 @@
          */
         function init(cssSelector, imageFilePath, options) {
             if (imageFilePath) {
-                loadImage(imageFilePath);
+                resolveImage(imageFilePath);
             } else {
                 self.photoArea.addClass('photo--empty');
             }
@@ -140,18 +143,31 @@
         /**
          * Load the image info an set image source
          */
-        function loadImage(imageUrl, orientation) {
-            var loaded = false;
+        function resolveImage(imageUrl, orientation) {
+            var loaded = false,
+                w,
+                h;
+
+                alert(orientation);
+
             self.model.imageSrc = imageUrl;
             self.photoArea.addClass('photo--loading');
             self.photoImg.attr('src', imageUrl)
                 .on('load', function (e) {
                     if (loaded) return;
-                    if (orientation) {
-                        adjustImageOrientation(orientation);
+
+                    w = this.width;
+                    h = this.height;
+                    /**
+                     * FIX Exif orientation for portrait and landscape size
+                     */
+                    if (orientation > 4) {
+                        h = this.width;
+                        w = this.height;
                     }
-                    if (this.width < self.options.image.minWidth ||
-                        this.height < self.options.image.minHeight) {
+
+                    if (w < self.options.image.minWidth ||
+                        h < self.options.image.minHeight) {
                         self.photoArea.addClass('photo--error--image-size photo--empty');
                         setModel({});
 
@@ -166,10 +182,10 @@
                         self.photoArea.removeClass('photo--error--image-size');
                     }
                     self.photoArea.removeClass('photo--empty photo--error--file-type photo--loading');
-                    self.model.originalHeight = this.height;
-                    self.model.originalWidth = this.width;
-                    self.model.height = this.height;
-                    self.model.width = this.width;
+                    self.model.originalHeight = h;
+                    self.model.originalWidth = w;
+                    self.model.height = h;
+                    self.model.width = w;
                     self.model.cropWidth = self.photoFrame.outerWidth();
                     self.model.cropHeight = self.photoFrame.outerHeight();
                     self.model.x = 0;
@@ -188,34 +204,6 @@
 
                     loaded = true;
                 });
-        }
-        /**
-         * Adjust orientation based on EXIF
-         */
-        function adjustImageOrientation(orientation) {
-            switch (orientation) {
-                case 2:
-                    self.photoImg.css('transform', 'scaleX(-1)');
-                    break;
-                case 3:
-                    self.photoImg.css('transform', 'rotate(180deg)');
-                    break;
-                case 4:
-                    self.photoImg.css('transform', 'rotate(180deg), scaleX(-1)');
-                    break;
-                case 5:
-                    self.photoImg.css('transform', 'rotate(90deg), scaleX(-1)');
-                    break;
-                case 6:
-                    self.photoImg.css('transform', 'rotate(90deg)');
-                    break;
-                case 7:
-                    self.photoImg.css('transform', 'rotate(270deg), scaleX(-1)');
-                    break;
-                case 8:
-                    self.photoImg.css('transform', 'rotate(270deg)');
-                    break;
-            }
         }
 
         /**
@@ -339,22 +327,22 @@
                 reader.onloadend = function (data) {
                     self.photoImg.css({ left: 0, top: 0 });
                     var base64Image = data.target.result;
+                    var ori = 0;
 
-
-                    var readFileInformation = new FileReader();
-                    readFileInformation.onloadend = function (data) {
-                        var exif, orientation = false;
-                        try {
-                            exif = new ExifReader();
-                            exif.load(data.target.result);
-                            exif.deleteTag('MakerNote');
-                            orientation = exif.getTagValue('Orientation');
-                        } catch (error) {
-                            //console.log(error);
+                    loadImage.parseMetaData(base64Image, function (data) {
+                        if (data.exif) {
+                            ori = data.exif.get('Orientation');
                         }
-                        loadImage(base64Image, orientation);
-                    }
-                    readFileInformation.readAsArrayBuffer(file.slice(0, 128 * 1024));
+                        var loadingImage = loadImage(
+                            base64Image,
+                            function (canvas) {
+                                resolveImage(canvas.toDataURL(), ori);
+                            }, {
+                                canvas: true,
+                                orientation: ori
+                            }
+                        );
+                    });
 
 
                 }
@@ -597,6 +585,8 @@
             }
             self.model.zoom = scaleRatio;
 
+            alert(newWidth + ' ' + newHeight);
+
             self.zoomControl
                 .attr('min', scaleRatio)
                 .attr('max', self.options.zoom.maxValue - scaleRatio)
@@ -646,5 +636,5 @@
             return canvas.toDataURL();
         }
     }
-})(window, jQuery);
+})(window, jQuery, loadImage);
 
