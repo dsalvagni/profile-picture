@@ -247,6 +247,7 @@
             self.canvasContext.clearRect(0, 0, self.model.cropWidth, self.model.cropHeight);
             self.canvasContext.save();
             self.photoArea.addClass('photo--empty');
+            self.photoHelper.attr('style', '');
             setModel({});
 
             /**
@@ -606,12 +607,27 @@
             self.canvasContext.globalCompositeOperation = "destination-over";
             self.canvasContext.drawImage(self.model.imageSrc, self.model.x, self.model.y, self.model.width, self.model.height);
             self.canvasContext.restore();
+            //updateHelper();
             /**
              * Call the onChange callback
              */
             if (typeof self.options.onChange === 'function') {
                 self.options.onChange(self.model);
             }
+        }
+        
+        /**
+         * Updates the image helper attributes
+         */
+        function updateHelper() {
+            var backgroundX = self.model.x + self.photoFrame.position().left;
+            var backgroundY = self.model.y + self.photoFrame.position().top;
+            self.photoHelper
+                .css({
+                    'background-image': 'linear-gradient(rgba(255,255,255,.85), rgba(255,255,255,.85)), url(' + self.model.imageSrc.src + ')',
+                    'background-position': backgroundX + 'px ' + backgroundY + 'px',
+                    'background-size': self.model.width + 'px ' + self.model.height + 'px '
+                });
         }
 
         /**
