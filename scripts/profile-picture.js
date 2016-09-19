@@ -7,7 +7,7 @@
 /**
  * Turn the globals into local variables.
  */
-; (function (window, $, undefined) {
+; (function (window, $, EXIF, undefined) {
     if (!window.profilePicture) {
         window.profilePicture = profilePicture;
     }
@@ -146,12 +146,27 @@
          * Set the image to a canvas
          */
         function processFile(imageUrl) {
+            function isDataURL(s) {
+                s = s.toString();
+                return !!s.match(isDataURL.regex);
+            }
+            isDataURL.regex = /^\s*data:([a-z]+\/[a-z]+(;[a-z\-]+\=[a-z\-]+)?)?(;base64)?,[a-z0-9\!\$\&\'\,\(\)\*\+\,\;\=\-\.\_\~\:\@\/\?\%\s]*\s*$/i;
+
             var image = new Image();
+            if (!isDataURL(imageUrl)) {
+                image.crossOrigin = 'anonymous';
+            }
             self.photoArea.addClass('photo--loading');
             image.onload = function () {
                 var ratio,
                     newH, newW,
                     w = this.width, h = this.height;
+
+                EXIF.getData(image, function () {
+                    self.model.orientation = EXIF.getTag(this, "Orientation");
+                });
+
+
                 if (w < self.options.image.minWidth ||
                     h < self.options.image.minHeight) {
                     self.photoArea.addClass('photo--error--image-size photo--empty');
@@ -589,7 +604,7 @@
         function render() {
             self.canvasContext.clearRect(0, 0, self.model.cropWidth, self.model.cropHeight);
             self.canvasContext.save();
-            self.canvasContext.globalCompositeOperation = "destination-over";
+            self.canvasContext.globalCompositeOperation = "destination-over";    
             self.canvasContext.drawImage(self.model.imageSrc, self.model.x, self.model.y, self.model.width, self.model.height);
             self.canvasContext.restore();
             /*self.photoImg
@@ -618,5 +633,5 @@
             return self.canvas.toDataURL(quality);
         }
     }
-})(window, jQuery);
+})(window, jQuery, EXIF);
 
