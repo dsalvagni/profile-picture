@@ -21,6 +21,7 @@
          * Map the DOM elements
          */
         self.element = $(cssSelector);
+        self.canvas = $(cssSelector + ' .photo__frame .photo__canvas')[0];
         self.photoImg = $(cssSelector + ' .photo__frame img');
         self.photoHelper = $(cssSelector + ' .photo__helper');
         self.photoLoading = $(cssSelector + ' .photo__frame .message.is-loading');
@@ -81,7 +82,9 @@
             originaly: 0,
             originalX: 0,
             minWidth: 350,
-            minHeight: 350
+            minHeight: 350,
+            maxWidth: 1000,
+            maxHeight: 1000
         };
 
         /**
@@ -111,6 +114,9 @@
          * Can load a preset image
          */
         function init(cssSelector, imageFilePath, options) {
+            self.canvas.width = self.photoFrame.outerWidth();
+            self.canvas.height = self.photoFrame.outerHeight();
+            self.canvasContext = self.canvas.getContext('2d');
             if (imageFilePath) {
                 processFile(imageFilePath);
             } else {
@@ -140,73 +146,81 @@
          * Set the image to a canvas
          */
         function processFile(imageUrl) {
+            function isDataURL(s) {
+                s = s.toString();
+                return !!s.match(isDataURL.regex);
+            }
+            isDataURL.regex = /^\s*data:([a-z]+\/[a-z]+(;[a-z\-]+\=[a-z\-]+)?)?(;base64)?,[a-z0-9\!\$\&\'\,\(\)\*\+\,\;\=\-\.\_\~\:\@\/\?\%\s]*\s*$/i;
+
             var image = new Image();
+            if (!isDataURL(imageUrl)) {
+                image.crossOrigin = 'anonymous';
+            }
             self.photoArea.addClass('photo--loading');
             image.onload = function () {
-                var canvas = document.createElement('canvas');
-                canvas.width = this.width;
-                canvas.height = this.height;
-                var context = canvas.getContext('2d');
-                context.drawImage(this, 0, 0);
+                var ratio,
+                    newH, newW,
+                    w = this.width, h = this.height;
 
-                dataURL = canvas.toDataURL();
-                resolveImage(dataURL, this.width, this.height);
+                if (w < self.options.image.minWidth ||
+                    h < self.options.image.minHeight) {
+                    self.photoArea.addClass('photo--error--image-size photo--empty');
+                    setModel({});
+
+                    /**
+                     * Call the onError callback
+                     */
+                    if (typeof self.options.onError === 'function') {
+                        self.options.onError('image-size');
+                    }
+
+                    self.photoArea.removeClass('photo--loading');
+                    return;
+                } else {
+                    self.photoArea.removeClass('photo--error--image-size');
+                }
+
+                self.photoArea.removeClass('photo--empty photo--error--file-type photo--loading');
+
+                var frameRatio = self.options.image.maxHeight / self.options.image.maxWidth;
+                var imageRatio = self.model.height / self.model.width;
+
+                if (frameRatio > imageRatio) {
+                    newH = self.options.image.maxHeight;
+                    ratio = (newH / h);
+                    newW = parseFloat(w) * ratio;
+                } else {
+                    newW = self.options.image.maxWidth;
+                    ratio = (newW / w);
+                    newH = parseFloat(h) * ratio;
+                }
+                h = newH;
+                w = newW;
+
+                self.model.imageSrc = image;
+                self.model.originalHeight = h;
+                self.model.originalWidth = w;
+                self.model.height = h;
+                self.model.width = w;
+                self.model.cropWidth = self.photoFrame.outerWidth();
+                self.model.cropHeight = self.photoFrame.outerHeight();
+                self.model.x = 0;
+                self.model.y = 0;
+                self.photoOptions.removeClass('hide');
+                fitToFrame();
+                render();
+
+                /**
+                 * Call the onLoad callback
+                 */
+                if (typeof self.options.onLoad === 'function') {
+                    self.options.onLoad(self.model);
+                }
 
             };
 
             image.src = imageUrl;
         }
-
-        /**
-         * Load the image info an set image source
-         */
-        function resolveImage(image, w, h) {
-            var loaded = false,
-                w,
-                h;
-            self.model.imageSrc = image;
-            self.photoArea.addClass('photo--loading');
-            self.photoImg
-                .attr('src', image)
-                .removeClass('hide');
-
-            if (w < self.options.image.minWidth ||
-                h < self.options.image.minHeight) {
-                self.photoArea.addClass('photo--error--image-size photo--empty');
-                setModel({});
-
-                /**
-                 * Call the onError callback
-                 */
-                if (typeof self.options.onError === 'function') {
-                    self.options.onError('image-size');
-                }
-                return;
-            } else {
-                self.photoArea.removeClass('photo--error--image-size');
-            }
-            self.photoArea.removeClass('photo--empty photo--error--file-type photo--loading');
-            self.model.originalHeight = h;
-            self.model.originalWidth = w;
-            self.model.height = h;
-            self.model.width = w;
-            self.model.cropWidth = self.photoFrame.outerWidth();
-            self.model.cropHeight = self.photoFrame.outerHeight();
-            self.model.x = 0;
-            self.model.y = 0;
-            fitToFrame();
-            render();
-
-            $(this).removeClass('hide');
-            self.photoOptions.removeClass('hide');
-            /**
-             * Call the onLoad callback
-             */
-            if (typeof self.options.onLoad === 'function') {
-                self.options.onLoad(self.model);
-            }
-        }
-
         /**
          * Updates the image helper attributes
          */
@@ -225,10 +239,9 @@
          * Remove the image and reset the component state
          */
         function removeImage() {
-            self.photoImg.addClass('hide').attr('src', '')
-                .attr('style', '');
+            self.canvasContext.clearRect(0, 0, self.model.cropWidth, self.model.cropHeight);
+            self.canvasContext.save();
             self.photoArea.addClass('photo--empty');
-            self.photoHelper.attr('style', '');
             setModel({});
 
             /**
@@ -346,7 +359,7 @@
          * Register the image drag events
          */
         function registerImageDragEvents() {
-            var $target, x, y, frameX, frameY, clientX, clientY;
+            var $dragging, x, y, frameX, frameY, clientX, clientY;
 
             frameX = self.photoFrame.offset().left;
             frameY = self.photoFrame.offset().top;
@@ -358,7 +371,7 @@
              * Stop dragging
              */
             $(window).on("mouseup touchend", function (e) {
-                if ($target) {
+                if ($dragging) {
                     /**
                      * Call the onPositionChange callback
                      */
@@ -372,14 +385,14 @@
                         self.options.onChange(self.model);
                     }
                 }
-                $target = null;
+                $dragging = null;
             });
             /**
              * Drag the image inside the container
              */
             $(window).on("mousemove touchmove", function (e) {
 
-                if ($target) {
+                if ($dragging) {
                     e.preventDefault();
                     var refresh = false;
                     clientX = e.clientX;
@@ -396,11 +409,11 @@
                     /**
                      * Limit the area to drag horizontally
                      */
-                    if ($target.width() + dx >= self.model.cropWidth) {
+                    if (self.model.width + dx >= self.model.cropWidth) {
                         self.model.x = dx;
                         refresh = true;
                     }
-                    if ($target.height() + dy >= self.model.cropHeight) {
+                    if (self.model.height + dy >= self.model.cropHeight) {
                         self.model.y = dy;
                         refresh = true;
                     }
@@ -411,15 +424,15 @@
             });
 
             function dragStart(e) {
-                $target = self.photoImg;
+                $dragging = true;
                 clientX = e.clientX;
                 clientY = e.clientY;
                 if (e.touches) {
                     clientX = e.touches[0].clientX
                     clientY = e.touches[0].clientY
                 }
-                x = clientX - $target.position().left;
-                y = clientY - $target.position().top;
+                x = clientX - self.model.x;
+                y = clientY - self.model.y;
             }
         }
         /**
@@ -477,8 +490,8 @@
          */
         function getPosition(newWidth, newHeight) {
 
-            var deltaY = (self.photoImg.position().top - (self.model.cropHeight / 2)) / self.model.height;
-            var deltaX = (self.photoImg.position().left - (self.model.cropWidth / 2)) / self.model.width;
+            var deltaY = (self.model.y - (self.model.cropHeight / 2)) / self.model.height;
+            var deltaX = (self.model.x - (self.model.cropWidth / 2)) / self.model.width;
             var y = (deltaY * newHeight + (self.model.cropHeight / 2));
             var x = (deltaX * newWidth + (self.model.cropWidth / 2));
 
@@ -560,11 +573,11 @@
 
             if (frameRatio > imageRatio) {
                 newHeight = self.model.cropHeight;
-                scaleRatio = Math.round((newHeight / self.model.height) * 100) / 100;
+                scaleRatio = (newHeight / self.model.height);
                 newWidth = parseFloat(self.model.width) * scaleRatio;
             } else {
                 newWidth = self.model.cropWidth;
-                scaleRatio = Math.round((newWidth / self.model.width) * 100) / 100;
+                scaleRatio = (newWidth / self.model.width);
                 newHeight = parseFloat(self.model.height) * scaleRatio;
             }
             self.model.zoom = scaleRatio;
@@ -583,15 +596,20 @@
          * Update image's position and size
          */
         function render() {
-            self.photoImg
+            self.canvasContext.clearRect(0, 0, self.model.cropWidth, self.model.cropHeight);
+            self.canvasContext.save();
+            self.canvasContext.globalCompositeOperation = "destination-over";
+            self.canvasContext.drawImage(self.model.imageSrc, self.model.x, self.model.y, self.model.width, self.model.height);
+            self.canvasContext.restore();
+            /*self.photoImg
                 .css({
                     top: self.model.y,
                     left: self.model.x,
                     width: self.model.width,
                     height: self.model.height
-                });
+                });*/
 
-            updateHelper();
+            //updateHelper();
 
             /**
              * Call the onChange callback
@@ -605,18 +623,8 @@
          * Return the image cropped as Base64 data URL
          */
         function getAsDataURL(quality) {
-            if(!quality) { quality = 1; }
-            var img = new Image();
-            img.src = self.model.imageSrc;
-            img.width = self.model.width + "px";
-            img.height = self.model.height + "px";
-
-            var canvas = document.createElement('canvas');
-            var ctx = canvas.getContext('2d');
-            canvas.width = self.model.cropWidth;
-            canvas.height = self.model.cropHeight;
-            ctx.drawImage(img, self.model.x, self.model.y, self.model.width, self.model.height);
-            return canvas.toDataURL(quality);
+            if (!quality) { quality = 1; }
+            return self.canvas.toDataURL(quality);
         }
     }
 })(window, jQuery);
