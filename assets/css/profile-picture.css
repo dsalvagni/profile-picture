@@ -257,6 +257,25 @@
 /**
 * States
 */
+/** SELECT PHOTO MESSAGE */
+.message--desktop,
+.message--mobile {
+  display: none;
+}
+/* MOBILE */
+.is-mobile .message--mobile {
+  display: inline-block;
+}
+.is-mobile .message--desktop {
+  display: none;
+}
+/* DESKTOP */
+.is-desktop .message--desktop {
+  display: inline-block;
+}
+.is-desktop .message--mobile {
+  display: none;
+}
 /* DEFAULT */
 .message.is-empty,
 .message.is-loading,
