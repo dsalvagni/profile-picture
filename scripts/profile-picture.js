@@ -7,7 +7,7 @@
 /**
  * Turn the globals into local variables.
  */
-; (function (window, $, EXIF, undefined) {
+; (function (window, $, undefined) {
     if (!window.profilePicture) {
         window.profilePicture = profilePicture;
     }
@@ -162,11 +162,6 @@
                     newH, newW,
                     w = this.width, h = this.height;
 
-                EXIF.getData(image, function () {
-                    self.model.orientation = EXIF.getTag(this, "Orientation");
-                });
-
-
                 if (w < self.options.image.minWidth ||
                     h < self.options.image.minHeight) {
                     self.photoArea.addClass('photo--error--image-size photo--empty');
@@ -212,7 +207,6 @@
                 self.model.x = 0;
                 self.model.y = 0;
                 self.photoOptions.removeClass('hide');
-
                 fitToFrame();
                 render();
 
@@ -604,7 +598,7 @@
         function render() {
             self.canvasContext.clearRect(0, 0, self.model.cropWidth, self.model.cropHeight);
             self.canvasContext.save();
-            self.canvasContext.globalCompositeOperation = "destination-over";    
+            self.canvasContext.globalCompositeOperation = "destination-over";
             self.canvasContext.drawImage(self.model.imageSrc, self.model.x, self.model.y, self.model.width, self.model.height);
             self.canvasContext.restore();
             /*self.photoImg
@@ -633,5 +627,5 @@
             return self.canvas.toDataURL(quality);
         }
     }
-})(window, jQuery, EXIF);
+})(window, jQuery);
 
