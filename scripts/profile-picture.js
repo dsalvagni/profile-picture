@@ -82,7 +82,9 @@
             originaly: 0,
             originalX: 0,
             minWidth: 350,
-            minHeight: 350
+            minHeight: 350,
+            maxWidth: 1000,
+            maxHeight: 1000
         };
 
         /**
@@ -146,8 +148,10 @@
         function processFile(imageUrl) {
             var image = new Image();
             self.photoArea.addClass('photo--loading');
-            image.onload = function () {                
-                var w = this.width, h = this.height;
+            image.onload = function () {
+                var ratio,
+                    newH, newW,
+                    w = this.width, h = this.height;
                 if (w < self.options.image.minWidth ||
                     h < self.options.image.minHeight) {
                     self.photoArea.addClass('photo--error--image-size photo--empty');
@@ -159,16 +163,31 @@
                     if (typeof self.options.onError === 'function') {
                         self.options.onError('image-size');
                     }
-                    
+
                     self.photoArea.removeClass('photo--loading');
                     return;
                 } else {
                     self.photoArea.removeClass('photo--error--image-size');
                 }
+
                 self.photoArea.removeClass('photo--empty photo--error--file-type photo--loading');
 
+                var frameRatio = self.options.image.maxHeight / self.options.image.maxWidth;
+                var imageRatio = self.model.height / self.model.width;
 
-                self.model.imageSrc = image;            
+                if (frameRatio > imageRatio) {
+                    newH = self.options.image.maxHeight;
+                    ratio = (newH / h);
+                    newW = parseFloat(w) * ratio;
+                } else {
+                    newW = self.options.image.maxWidth;
+                    ratio = (newW / w);
+                    newH = parseFloat(h) * ratio;
+                }
+                h = newH;
+                w = newW;
+
+                self.model.imageSrc = image;
                 self.model.originalHeight = h;
                 self.model.originalWidth = w;
                 self.model.height = h;
@@ -178,7 +197,7 @@
                 self.model.x = 0;
                 self.model.y = 0;
                 self.photoOptions.removeClass('hide');
-                
+
                 fitToFrame();
                 render();
 
@@ -211,10 +230,9 @@
          * Remove the image and reset the component state
          */
         function removeImage() {
-            self.photoImg.addClass('hide').attr('src', '')
-                .attr('style', '');
+            self.canvasContext.clearRect(0, 0, self.model.cropWidth, self.model.cropHeight);
+            self.canvasContext.save();
             self.photoArea.addClass('photo--empty');
-            self.photoHelper.attr('style', '');
             setModel({});
 
             /**
@@ -366,7 +384,6 @@
             $(window).on("mousemove touchmove", function (e) {
 
                 if ($dragging) {
-                    console.log('tst');
                     e.preventDefault();
                     var refresh = false;
                     clientX = e.clientX;
@@ -462,7 +479,7 @@
         /**
          * Calculates the new image's position based in its new size
          */
-        function getPosition(x, y, dx, dy) {
+        function getPosition(newWidth, newHeight) {
 
             var deltaY = (self.model.y - (self.model.cropHeight / 2)) / self.model.height;
             var deltaX = (self.model.x - (self.model.cropWidth / 2)) / self.model.width;
@@ -541,17 +558,17 @@
          */
         function fitToFrame() {
             var newHeight, newWidth, scaleRatio;
-            
+
             var frameRatio = self.model.cropHeight / self.model.cropWidth;
             var imageRatio = self.model.height / self.model.width;
 
             if (frameRatio > imageRatio) {
                 newHeight = self.model.cropHeight;
-                scaleRatio = Math.round((newHeight / self.model.height) * 100) / 100;
+                scaleRatio = (newHeight / self.model.height);
                 newWidth = parseFloat(self.model.width) * scaleRatio;
             } else {
                 newWidth = self.model.cropWidth;
-                scaleRatio = Math.round((newWidth / self.model.width) * 100) / 100;
+                scaleRatio = (newWidth / self.model.width);
                 newHeight = parseFloat(self.model.height) * scaleRatio;
             }
             self.model.zoom = scaleRatio;
@@ -570,7 +587,7 @@
          * Update image's position and size
          */
         function render() {
-            console.log(self.model.x);
+            self.canvasContext.clearRect(0, 0, self.model.cropWidth, self.model.cropHeight);
             self.canvasContext.save();
             self.canvasContext.globalCompositeOperation = "destination-over";
             self.canvasContext.drawImage(self.model.imageSrc, self.model.x, self.model.y, self.model.width, self.model.height);
@@ -598,17 +615,7 @@
          */
         function getAsDataURL(quality) {
             if (!quality) { quality = 1; }
-            var img = new Image();
-            img.src = self.model.imageSrc;
-            img.width = self.model.width + "px";
-            img.height = self.model.height + "px";
-
-            var canvas = document.createElement('canvas');
-            var ctx = canvas.getContext('2d');
-            canvas.width = self.model.cropWidth;
-            canvas.height = self.model.cropHeight;
-            ctx.drawImage(img, self.model.x, self.model.y, self.model.width, self.model.height);
-            return canvas.toDataURL(quality);
+            return self.canvas.toDataURL(quality);
         }
     }
 })(window, jQuery);
