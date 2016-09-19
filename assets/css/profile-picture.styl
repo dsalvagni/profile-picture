@@ -1,0 +1,244 @@
+/* IMMUTABLE */
+.hide { display: none !important;}
+* {
+    box-sizing: border-box;
+}
+
+@import 'zoom';
+
+
+/**
+* FRAME STYLE
+*/
+.photo__frame--circle {
+    border: 1px solid #e2e2e2;
+    border-radius: 50%;
+}
+
+.photo__helper {
+    position: relative;
+    background-repeat: no-repeat;    
+    background-color: transparent;
+    padding: 15px;
+}
+
+
+.photo__frame img, .photo__helper {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.profile {
+    position: relative;
+    font-family: 'HelveticaNeueLTPro-Roman', sans-serif;
+    font-size: 85%;
+    width: 300px;
+}
+
+.photo {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.photo input[type=file] {
+    display: none;
+}
+
+.photo__options {
+    margin-top: 15px;
+    position: relative;
+    text-align: left;
+}
+
+.photo__options .remove {
+    padding: 0;
+    padding: 0;
+    display: inline-block;
+    text-decoration: none;
+    color: #DDDDDD;
+    font-size: 18px;
+    width: 20%;
+    text-align: center;
+    vertical-align: middle;
+    &:hover {
+        color: #000;
+    }
+}
+
+.photo__zoom {
+    vertical-align: middle;
+    width: 80%;
+    display: inline-block;
+}
+
+.photo__frame {
+    cursor: move;  
+}
+.photo__frame {    
+    overflow: hidden;
+    position: relative;
+    display: inline-block;   
+    width: 160px;
+    height: 160px; 
+}
+
+
+.photo__frame img, .photo__helper img {
+    position: relative;
+}
+
+.photo__frame .message {
+    position: absolute;
+    left: 5px;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-block;
+    color: #268eff;
+    z-index: 3;
+}
+
+.photo__frame .is-dragover {
+    display: none;
+}
+
+.message p {
+    font-size: .9em;
+}
+
+.photo__options {
+    list-style: none;
+}
+
+.photo__options li {
+    display: inline-block;
+    text-align: center;
+    width: 50%;
+}
+
+.photo--empty .photo__frame {
+    cursor: pointer;
+}
+
+
+
+/**
+* IMG states
+*/
+.profile.is-dragover .photo__frame img,
+.photo--empty img,
+.photo--error img,
+.photo--error--file-type img,
+.photo--error--image-size img,
+.photo--loading img {
+    display: none;
+}
+ 
+
+/**
+* States
+*/
+
+
+/* DEFAULT */
+
+.message.is-empty,
+.message.is-loading,
+.message.is-wrong-file-type,
+.message.is-wrong-image-size,
+.message.is-something-wrong,
+.message.is-dragover {
+    display: none;
+}
+
+
+/* EMPTY */
+.photo--empty .photo__options {
+    display: none;
+}
+.photo--empty .message.is-empty {
+    display: inline-block;
+}
+
+
+.photo--empty .photo__frame:hover {
+    background: #268eff;
+}
+
+.photo--empty .photo__frame:hover .message {
+    color: #FFF;
+}
+
+
+/* LOADING */
+
+.photo--loading .message.is-loading {
+    display: inline-block;
+}
+
+.photo--loading .message.is-empty,
+.photo--loading .message.is-wrong-file-type,
+.photo--loading .message.is-dragover,
+.photo--loading .message.is-wrong-image-size,
+.photo--loading .photo__options {
+    display: none;
+}
+
+
+/* ERROR */
+/* UNKNOWN */
+.photo--error .message.is-empty,
+.photo--error .message.is-loading,
+.photo--error .message.is-dragover,
+.photo--error .message.is-wrong-image-size,
+.photo--error .photo__options {
+    display: none;
+}
+
+.photo--error .message.is-something-wrong {
+    display: inline-block;
+}
+
+/* FILE TYPE*/
+.photo--error--file-type .message.is-empty,
+.photo--error--file-type .message.is-loading,
+.photo--error--file-type .message.is-dragover,
+.photo--error--file-type .message.is-wrong-image-size,
+.photo--error--file-type .photo__options {
+    display: none;
+}
+
+.photo--error--file-type .message.is-wrong-file-type {
+    display: inline-block;
+}
+
+/* IMAGE SIZE */
+.photo--error--image-size .message.is-empty,
+.photo--error--image-size .message.is-loading,
+.photo--error--image-size .message.is-dragover,
+.photo--error--image-size .message.is-wrong-file-type,
+.photo--error--image-size .photo__options {
+    display: none;
+}
+
+.photo--error--image-size .message.is-wrong-image-size {
+    display: inline-block;
+}
+
+
+/* DRAGOVER */
+
+.profile.is-dragover .photo__frame .is-dragover {
+    display: inline-block;
+}
+
+.profile.is-dragover .message.is-empty,
+.profile.is-dragover .message.is-loading,
+.profile.is-dragover .message.is-wrong-file-type,
+.profile.is-dragover .message.is-wrong-image-size {
+    display: none;
+}

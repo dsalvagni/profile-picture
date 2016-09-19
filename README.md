@@ -101,11 +101,12 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 ```
     pp.getData();
 ```
-### scaleImage
-> Public method to scale the image. You can scale from 0 to 200 percent.
+### getAsDataURL
+> Public method to return the base64 image format.
+> @param quality 0.1-1. Default: 1
 
 ```
-    pp.scaleImage(0..200);
+    pp.getAsDataURL(quality);
 ```
 
 ### removeImage
