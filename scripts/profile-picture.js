@@ -136,10 +136,11 @@
         function setModel(model) {
             self.model = model;
         }
-
+        /**
+         * Set the image to a canvas
+         */
         function processFile(imageUrl) {
             var image = new Image();
-            image.setAttribute('crossOrigin', 'anonymous');
             image.onload = function () {
                 var canvas = document.createElement('canvas');
                 canvas.width = this.width;
