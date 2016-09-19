@@ -22,6 +22,7 @@
          */
         self.element = $(cssSelector);
         self.photoImg = $(cssSelector + ' .photo__frame img');
+        self.photoHelper = $(cssSelector + ' .photo__helper');
         self.photoLoading = $(cssSelector + ' .photo__frame .message.is-loading');
         self.photoOptions = $(cssSelector + ' .photo__options');
         self.photoFrame = $(cssSelector + ' .photo__frame');
@@ -98,6 +99,7 @@
          */
         return {
             getData: getData,
+            getAsDataUrl: getAsDataUrl,
             removeImage: removeImage
         };
 
@@ -138,13 +140,16 @@
         /**
          * Load the image info an set image source
          */
-        function loadImage(imageUrl) {
+        function loadImage(imageUrl, orientation) {
             var loaded = false;
             self.model.imageSrc = imageUrl;
             self.photoArea.addClass('photo--loading');
             self.photoImg.attr('src', imageUrl)
-                .on('load', function () {
+                .on('load', function (e) {
                     if (loaded) return;
+                    if (orientation) {
+                        adjustImageOrientation(orientation);
+                    }
                     if (this.width < self.options.image.minWidth ||
                         this.height < self.options.image.minHeight) {
                         self.photoArea.addClass('photo--error--image-size photo--empty');
@@ -171,6 +176,7 @@
                     self.model.y = 0;
                     fitToFrame();
                     render();
+
                     $(this).removeClass('hide');
                     self.photoOptions.removeClass('hide');
                     /**
@@ -183,6 +189,48 @@
                     loaded = true;
                 });
         }
+        /**
+         * Adjust orientation based on EXIF
+         */
+        function adjustImageOrientation(orientation) {
+            switch (orientation) {
+                case 2:
+                    self.photoImg.css('transform', 'scaleX(-1)');
+                    break;
+                case 3:
+                    self.photoImg.css('transform', 'rotate(180deg)');
+                    break;
+                case 4:
+                    self.photoImg.css('transform', 'rotate(180deg), scaleX(-1)');
+                    break;
+                case 5:
+                    self.photoImg.css('transform', 'rotate(90deg), scaleX(-1)');
+                    break;
+                case 6:
+                    self.photoImg.css('transform', 'rotate(90deg)');
+                    break;
+                case 7:
+                    self.photoImg.css('transform', 'rotate(270deg), scaleX(-1)');
+                    break;
+                case 8:
+                    self.photoImg.css('transform', 'rotate(270deg)');
+                    break;
+            }
+        }
+
+        /**
+         * Updates the image helper attributes
+         */
+        function updateHelper() {
+            var backgroundX = self.model.x + self.photoFrame.position().left;
+            var backgroundY = self.model.y + self.photoFrame.position().top;
+            self.photoHelper
+                .css({
+                    'background-image': 'linear-gradient(rgba(255,255,255,.85), rgba(255,255,255,.85)), url(' + self.model.imageSrc + ')',
+                    'background-position': backgroundX + 'px ' + backgroundY + 'px',
+                    'background-size': self.model.width + 'px ' + self.model.height + 'px '
+                });
+        }
 
         /**
          * Remove the image and reset the component state
@@ -191,6 +239,7 @@
             self.photoImg.addClass('hide').attr('src', '')
                 .attr('style', '');
             self.photoArea.addClass('photo--empty');
+            self.photoHelper.attr('style', '');
             setModel({});
 
             /**
@@ -289,7 +338,25 @@
                 }
                 reader.onloadend = function (data) {
                     self.photoImg.css({ left: 0, top: 0 });
-                    loadImage(data.target.result);
+                    var base64Image = data.target.result;
+
+
+                    var readFileInformation = new FileReader();
+                    readFileInformation.onloadend = function (data) {
+                        var exif, orientation = false;
+                        try {
+                            exif = new ExifReader();
+                            exif.load(data.target.result);
+                            exif.deleteTag('MakerNote');
+                            orientation = exif.getTagValue('Orientation');
+                        } catch (error) {
+                            //console.log(error);
+                        }
+                        loadImage(base64Image, orientation);
+                    }
+                    readFileInformation.readAsArrayBuffer(file.slice(0, 128 * 1024));
+
+
                 }
                 reader.onerror = function () {
                     self.photoArea.addClass('photo--error');
@@ -314,19 +381,7 @@
             /**
              * Get the image info
              */
-            self.photoImg.on("mousedown touchstart", function (e) {
-                $target = $(e.target);
-                clientX = e.clientX;
-                clientY = e.clientY;
-                if (e.touches) {
-                    clientX = e.touches[0].clientX
-                    clientY = e.touches[0].clientY
-                }
-                x = clientX - $(this).position().left;
-                y = clientY - $(this).position().top;
-
-
-            });
+            self.photoHelper.on("mousedown touchstart", dragStart);
             /**
              * Stop dragging
              */
@@ -350,7 +405,8 @@
             /**
              * Drag the image inside the container
              */
-            $(window).on("mousemove touchmove", function (e) {                
+            $(window).on("mousemove touchmove", function (e) {
+
                 if ($target) {
                     e.preventDefault();
                     var refresh = false;
@@ -381,6 +437,18 @@
                     }
                 };
             });
+
+            function dragStart(e) {
+                $target = self.photoImg;
+                clientX = e.clientX;
+                clientY = e.clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX
+                    clientY = e.touches[0].clientY
+                }
+                x = clientX - $target.position().left;
+                y = clientY - $target.position().top;
+            }
         }
         /**
          * Register the zoom control events
@@ -410,8 +478,8 @@
          * Set the image to the center of the frame
          */
         function centerImage() {
-            var x = Math.abs(self.model.x - ((self.model.width - self.model.cropWidth)/2));
-            var y = Math.abs(self.model.y - ((self.model.height - self.model.cropHeight)/2));
+            var x = Math.abs(self.model.x - ((self.model.width - self.model.cropWidth) / 2));
+            var y = Math.abs(self.model.y - ((self.model.height - self.model.cropHeight) / 2));
             x = self.model.x - x;
             y = self.model.y - y;
             x = Math.min(x, 0);
@@ -441,7 +509,7 @@
             var deltaX = (self.photoImg.position().left - (self.model.cropWidth / 2)) / self.model.width;
             var y = (deltaY * newHeight + (self.model.cropHeight / 2));
             var x = (deltaX * newWidth + (self.model.cropWidth / 2));
-            
+
             x = Math.min(x, 0);
             y = Math.min(y, 0);
 
@@ -535,7 +603,7 @@
                 .val(scaleRatio);
 
             self.model.height = newHeight;
-            self.model.width = newWidth;           
+            self.model.width = newWidth;
             updateZoomIndicator();
             centerImage();
         }
@@ -551,6 +619,8 @@
                     height: self.model.height
                 });
 
+            updateHelper();
+
             /**
              * Call the onChange callback
              */
@@ -559,6 +629,22 @@
             }
         }
 
+        /**
+         * Return the image cropped as Base64 data URL
+         */
+        function getAsDataUrl() {
+            var img = new Image();
+            img.src = self.model.imageSrc;
+            img.width = self.model.width + "px";
+            img.height = self.model.height + "px";
+
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d');
+            canvas.width = self.model.cropWidth;
+            canvas.height = self.model.cropHeight;
+            ctx.drawImage(img, self.model.x, self.model.y, self.model.width, self.model.height);
+            return canvas.toDataURL();
+        }
     }
 })(window, jQuery);
 

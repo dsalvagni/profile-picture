@@ -11,13 +11,19 @@
 * FRAME STYLE
 */
 .photo__frame--circle {
-    display: inline-block;
-    width: 160px;
-    height: 160px;  
+    border: 1px solid #e2e2e2;
+    border-radius: 50%;
+}
+
+.photo__helper {
+    position: relative;
+    background-repeat: no-repeat;    
+    background-color: transparent;
+    padding: 15px;
 }
 
 
-.photo__frame img {
+.photo__frame img, .photo__helper {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -43,32 +49,45 @@
 }
 
 .photo__options {
+    margin-top: 15px;
     position: relative;
-    text-align: center;
+    text-align: left;
 }
 
 .photo__options .remove {
+    padding: 0;
+    padding: 0;
+    display: inline-block;
     text-decoration: none;
     color: #DDDDDD;
-    position: absolute;
-    right: 0;
-    top: -35px;
     font-size: 18px;
+    width: 20%;
+    text-align: center;
+    vertical-align: middle;
     &:hover {
         color: #000;
     }
 }
 
-
-.photo__frame {
-    overflow: hidden;
-    position: relative;
-    border: 1px solid #e2e2e2;
-    border-radius: 50%;
-    cursor: move;  
+.photo__zoom {
+    vertical-align: middle;
+    width: 80%;
+    display: inline-block;
 }
 
-.photo__frame img {
+.photo__frame {
+    cursor: move;  
+}
+.photo__frame {    
+    overflow: hidden;
+    position: relative;
+    display: inline-block;   
+    width: 160px;
+    height: 160px; 
+}
+
+
+.photo__frame img, .photo__helper img {
     position: relative;
 }
 

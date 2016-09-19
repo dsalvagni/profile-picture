@@ -101,12 +101,6 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 ```
     pp.getData();
 ```
-### scaleImage
-> Public method to scale the image. You can scale from 0 to 200 percent.
-
-```
-    pp.scaleImage(0..200);
-```
 
 ### removeImage
 > Public method to remove the image.
