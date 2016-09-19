@@ -143,6 +143,18 @@
 * States
 */
 
+/** SELECT PHOTO MESSAGE */
+.message--desktop, .message--mobile { display: none; }
+/* MOBILE */
+.is-mobile {
+    .message--mobile { display: inline-block; }
+    .message--desktop { display: none; }
+}
+/* DESKTOP */
+.is-desktop {
+    .message--desktop { display: inline-block; }
+    .message--mobile { display: none; }
+}
 
 /* DEFAULT */
 

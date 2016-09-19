@@ -114,9 +114,21 @@
          * Can load a preset image
          */
         function init(cssSelector, imageFilePath, options) {
+            /**
+             * Start canvas
+             */
             self.canvas.width = self.photoFrame.outerWidth();
             self.canvas.height = self.photoFrame.outerHeight();
             self.canvasContext = self.canvas.getContext('2d');
+            /**
+             * Show the right text
+             */
+            if(isMobile()) {
+                self.photoArea.addClass('is-mobile');
+            } else {
+                self.photoArea.addClass('is-desktop');
+            }
+
             if (imageFilePath) {
                 processFile(imageFilePath);
             } else {
@@ -128,6 +140,13 @@
             registerDropZoneEvents();
             registerImageDragEvents();
             registerZoomEvents();
+        }
+
+        /**
+         * Check if the user's device is a smartphone/tablet
+         */
+        function isMobile() {           
+            return navigator.userAgent.match(/BlackBerry|Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i);
         }
 
         /**
@@ -221,20 +240,6 @@
 
             image.src = imageUrl;
         }
-        /**
-         * Updates the image helper attributes
-         */
-        function updateHelper() {
-            var backgroundX = self.model.x + self.photoFrame.position().left;
-            var backgroundY = self.model.y + self.photoFrame.position().top;
-            self.photoHelper
-                .css({
-                    'background-image': 'linear-gradient(rgba(255,255,255,.85), rgba(255,255,255,.85)), url(' + self.model.imageSrc + ')',
-                    'background-position': backgroundX + 'px ' + backgroundY + 'px',
-                    'background-size': self.model.width + 'px ' + self.model.height + 'px '
-                });
-        }
-
         /**
          * Remove the image and reset the component state
          */
@@ -601,16 +606,6 @@
             self.canvasContext.globalCompositeOperation = "destination-over";
             self.canvasContext.drawImage(self.model.imageSrc, self.model.x, self.model.y, self.model.width, self.model.height);
             self.canvasContext.restore();
-            /*self.photoImg
-                .css({
-                    top: self.model.y,
-                    left: self.model.x,
-                    width: self.model.width,
-                    height: self.model.height
-                });*/
-
-            //updateHelper();
-
             /**
              * Call the onChange callback
              */
