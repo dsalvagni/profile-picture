@@ -21,6 +21,7 @@
          * Map the DOM elements
          */
         self.element = $(cssSelector);
+        self.canvas = $(cssSelector + ' .photo__frame .photo__canvas')[0];
         self.photoImg = $(cssSelector + ' .photo__frame img');
         self.photoHelper = $(cssSelector + ' .photo__helper');
         self.photoLoading = $(cssSelector + ' .photo__frame .message.is-loading');
@@ -111,6 +112,9 @@
          * Can load a preset image
          */
         function init(cssSelector, imageFilePath, options) {
+            self.canvas.width = self.photoFrame.outerWidth();
+            self.canvas.height = self.photoFrame.outerHeight();
+            self.canvasContext = self.canvas.getContext('2d');
             if (imageFilePath) {
                 processFile(imageFilePath);
             } else {
@@ -142,71 +146,53 @@
         function processFile(imageUrl) {
             var image = new Image();
             self.photoArea.addClass('photo--loading');
-            image.onload = function () {
-                var canvas = document.createElement('canvas');
-                canvas.width = this.width;
-                canvas.height = this.height;
-                var context = canvas.getContext('2d');
-                context.drawImage(this, 0, 0);
+            image.onload = function () {                
+                var w = this.width, h = this.height;
+                if (w < self.options.image.minWidth ||
+                    h < self.options.image.minHeight) {
+                    self.photoArea.addClass('photo--error--image-size photo--empty');
+                    setModel({});
 
-                dataURL = canvas.toDataURL();
-                resolveImage(dataURL, this.width, this.height);
+                    /**
+                     * Call the onError callback
+                     */
+                    if (typeof self.options.onError === 'function') {
+                        self.options.onError('image-size');
+                    }
+                    
+                    self.photoArea.removeClass('photo--loading');
+                    return;
+                } else {
+                    self.photoArea.removeClass('photo--error--image-size');
+                }
+                self.photoArea.removeClass('photo--empty photo--error--file-type photo--loading');
+
+
+                self.model.imageSrc = image;            
+                self.model.originalHeight = h;
+                self.model.originalWidth = w;
+                self.model.height = h;
+                self.model.width = w;
+                self.model.cropWidth = self.photoFrame.outerWidth();
+                self.model.cropHeight = self.photoFrame.outerHeight();
+                self.model.x = 0;
+                self.model.y = 0;
+                self.photoOptions.removeClass('hide');
+                
+                fitToFrame();
+                render();
+
+                /**
+                 * Call the onLoad callback
+                 */
+                if (typeof self.options.onLoad === 'function') {
+                    self.options.onLoad(self.model);
+                }
 
             };
 
             image.src = imageUrl;
         }
-
-        /**
-         * Load the image info an set image source
-         */
-        function resolveImage(image, w, h) {
-            var loaded = false,
-                w,
-                h;
-            self.model.imageSrc = image;
-            self.photoArea.addClass('photo--loading');
-            self.photoImg
-                .attr('src', image)
-                .removeClass('hide');
-
-            if (w < self.options.image.minWidth ||
-                h < self.options.image.minHeight) {
-                self.photoArea.addClass('photo--error--image-size photo--empty');
-                setModel({});
-
-                /**
-                 * Call the onError callback
-                 */
-                if (typeof self.options.onError === 'function') {
-                    self.options.onError('image-size');
-                }
-                return;
-            } else {
-                self.photoArea.removeClass('photo--error--image-size');
-            }
-            self.photoArea.removeClass('photo--empty photo--error--file-type photo--loading');
-            self.model.originalHeight = h;
-            self.model.originalWidth = w;
-            self.model.height = h;
-            self.model.width = w;
-            self.model.cropWidth = self.photoFrame.outerWidth();
-            self.model.cropHeight = self.photoFrame.outerHeight();
-            self.model.x = 0;
-            self.model.y = 0;
-            fitToFrame();
-            render();
-
-            $(this).removeClass('hide');
-            self.photoOptions.removeClass('hide');
-            /**
-             * Call the onLoad callback
-             */
-            if (typeof self.options.onLoad === 'function') {
-                self.options.onLoad(self.model);
-            }
-        }
-
         /**
          * Updates the image helper attributes
          */
@@ -346,7 +332,7 @@
          * Register the image drag events
          */
         function registerImageDragEvents() {
-            var $target, x, y, frameX, frameY, clientX, clientY;
+            var $dragging, x, y, frameX, frameY, clientX, clientY;
 
             frameX = self.photoFrame.offset().left;
             frameY = self.photoFrame.offset().top;
@@ -358,7 +344,7 @@
              * Stop dragging
              */
             $(window).on("mouseup touchend", function (e) {
-                if ($target) {
+                if ($dragging) {
                     /**
                      * Call the onPositionChange callback
                      */
@@ -372,14 +358,15 @@
                         self.options.onChange(self.model);
                     }
                 }
-                $target = null;
+                $dragging = null;
             });
             /**
              * Drag the image inside the container
              */
             $(window).on("mousemove touchmove", function (e) {
 
-                if ($target) {
+                if ($dragging) {
+                    console.log('tst');
                     e.preventDefault();
                     var refresh = false;
                     clientX = e.clientX;
@@ -396,11 +383,11 @@
                     /**
                      * Limit the area to drag horizontally
                      */
-                    if ($target.width() + dx >= self.model.cropWidth) {
+                    if (self.model.width + dx >= self.model.cropWidth) {
                         self.model.x = dx;
                         refresh = true;
                     }
-                    if ($target.height() + dy >= self.model.cropHeight) {
+                    if (self.model.height + dy >= self.model.cropHeight) {
                         self.model.y = dy;
                         refresh = true;
                     }
@@ -411,15 +398,15 @@
             });
 
             function dragStart(e) {
-                $target = self.photoImg;
+                $dragging = true;
                 clientX = e.clientX;
                 clientY = e.clientY;
                 if (e.touches) {
                     clientX = e.touches[0].clientX
                     clientY = e.touches[0].clientY
                 }
-                x = clientX - $target.position().left;
-                y = clientY - $target.position().top;
+                x = clientX - self.model.x;
+                y = clientY - self.model.y;
             }
         }
         /**
@@ -475,10 +462,10 @@
         /**
          * Calculates the new image's position based in its new size
          */
-        function getPosition(newWidth, newHeight) {
+        function getPosition(x, y, dx, dy) {
 
-            var deltaY = (self.photoImg.position().top - (self.model.cropHeight / 2)) / self.model.height;
-            var deltaX = (self.photoImg.position().left - (self.model.cropWidth / 2)) / self.model.width;
+            var deltaY = (self.model.y - (self.model.cropHeight / 2)) / self.model.height;
+            var deltaX = (self.model.x - (self.model.cropWidth / 2)) / self.model.width;
             var y = (deltaY * newHeight + (self.model.cropHeight / 2));
             var x = (deltaX * newWidth + (self.model.cropWidth / 2));
 
@@ -554,7 +541,7 @@
          */
         function fitToFrame() {
             var newHeight, newWidth, scaleRatio;
-
+            
             var frameRatio = self.model.cropHeight / self.model.cropWidth;
             var imageRatio = self.model.height / self.model.width;
 
@@ -583,15 +570,20 @@
          * Update image's position and size
          */
         function render() {
-            self.photoImg
+            console.log(self.model.x);
+            self.canvasContext.save();
+            self.canvasContext.globalCompositeOperation = "destination-over";
+            self.canvasContext.drawImage(self.model.imageSrc, self.model.x, self.model.y, self.model.width, self.model.height);
+            self.canvasContext.restore();
+            /*self.photoImg
                 .css({
                     top: self.model.y,
                     left: self.model.x,
                     width: self.model.width,
                     height: self.model.height
-                });
+                });*/
 
-            updateHelper();
+            //updateHelper();
 
             /**
              * Call the onChange callback
@@ -605,7 +597,7 @@
          * Return the image cropped as Base64 data URL
          */
         function getAsDataURL(quality) {
-            if(!quality) { quality = 1; }
+            if (!quality) { quality = 1; }
             var img = new Image();
             img.src = self.model.imageSrc;
             img.width = self.model.width + "px";
