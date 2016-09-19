@@ -6,11 +6,8 @@
 
 /**
  * Turn the globals into local variables.
- * @deps:
- *  - JavaScript Load Image <https://github.com/blueimp/JavaScript-Load-Image> 
- *    Used to fix the EXIF orientation from camera picture uploads
  */
-; (function (window, $, loadImage, undefined) {
+; (function (window, $, undefined) {
     if (!window.profilePicture) {
         window.profilePicture = profilePicture;
     }
@@ -102,7 +99,7 @@
          */
         return {
             getData: getData,
-            getAsDataUrl: getAsDataUrl,
+            getAsDataURL: getAsDataURL,
             removeImage: removeImage
         };
 
@@ -115,7 +112,7 @@
          */
         function init(cssSelector, imageFilePath, options) {
             if (imageFilePath) {
-                resolveImage(imageFilePath);
+                processFile(imageFilePath);
             } else {
                 self.photoArea.addClass('photo--empty');
             }
@@ -140,70 +137,72 @@
             self.model = model;
         }
 
+        function processFile(imageUrl) {
+            var image = new Image();
+            image.setAttribute('crossOrigin', 'anonymous');
+            image.onload = function () {
+                var canvas = document.createElement('canvas');
+                canvas.width = this.width;
+                canvas.height = this.height;
+                var context = canvas.getContext('2d');
+                context.drawImage(this, 0, 0);
+
+                dataURL = canvas.toDataURL();
+                resolveImage(dataURL, this.width, this.height);
+
+            };
+
+            image.src = imageUrl;
+        }
+
         /**
          * Load the image info an set image source
          */
-        function resolveImage(imageUrl, orientation) {
+        function resolveImage(image, w, h) {
             var loaded = false,
                 w,
                 h;
-
-                alert(orientation);
-
-            self.model.imageSrc = imageUrl;
+            self.model.imageSrc = image;
             self.photoArea.addClass('photo--loading');
-            self.photoImg.attr('src', imageUrl)
-                .on('load', function (e) {
-                    if (loaded) return;
+            self.photoImg
+                .attr('src', image)
+                .removeClass('hide');
 
-                    w = this.width;
-                    h = this.height;
-                    /**
-                     * FIX Exif orientation for portrait and landscape size
-                     */
-                    if (orientation > 4) {
-                        h = this.width;
-                        w = this.height;
-                    }
+            if (w < self.options.image.minWidth ||
+                h < self.options.image.minHeight) {
+                self.photoArea.addClass('photo--error--image-size photo--empty');
+                setModel({});
 
-                    if (w < self.options.image.minWidth ||
-                        h < self.options.image.minHeight) {
-                        self.photoArea.addClass('photo--error--image-size photo--empty');
-                        setModel({});
+                /**
+                 * Call the onError callback
+                 */
+                if (typeof self.options.onError === 'function') {
+                    self.options.onError('image-size');
+                }
+                return;
+            } else {
+                self.photoArea.removeClass('photo--error--image-size');
+            }
+            self.photoArea.removeClass('photo--empty photo--error--file-type photo--loading');
+            self.model.originalHeight = h;
+            self.model.originalWidth = w;
+            self.model.height = h;
+            self.model.width = w;
+            self.model.cropWidth = self.photoFrame.outerWidth();
+            self.model.cropHeight = self.photoFrame.outerHeight();
+            self.model.x = 0;
+            self.model.y = 0;
+            fitToFrame();
+            render();
 
-                        /**
-                       * Call the onError callback
-                       */
-                        if (typeof self.options.onError === 'function') {
-                            self.options.onError('image-size');
-                        }
-                        return;
-                    } else {
-                        self.photoArea.removeClass('photo--error--image-size');
-                    }
-                    self.photoArea.removeClass('photo--empty photo--error--file-type photo--loading');
-                    self.model.originalHeight = h;
-                    self.model.originalWidth = w;
-                    self.model.height = h;
-                    self.model.width = w;
-                    self.model.cropWidth = self.photoFrame.outerWidth();
-                    self.model.cropHeight = self.photoFrame.outerHeight();
-                    self.model.x = 0;
-                    self.model.y = 0;
-                    fitToFrame();
-                    render();
-
-                    $(this).removeClass('hide');
-                    self.photoOptions.removeClass('hide');
-                    /**
-                     * Call the onLoad callback
-                     */
-                    if (typeof self.options.onLoad === 'function') {
-                        self.options.onLoad(self.model);
-                    }
-
-                    loaded = true;
-                });
+            $(this).removeClass('hide');
+            self.photoOptions.removeClass('hide');
+            /**
+             * Call the onLoad callback
+             */
+            if (typeof self.options.onLoad === 'function') {
+                self.options.onLoad(self.model);
+            }
         }
 
         /**
@@ -327,24 +326,7 @@
                 reader.onloadend = function (data) {
                     self.photoImg.css({ left: 0, top: 0 });
                     var base64Image = data.target.result;
-                    var ori = 0;
-
-                    loadImage.parseMetaData(base64Image, function (data) {
-                        if (data.exif) {
-                            ori = data.exif.get('Orientation');
-                        }
-                        var loadingImage = loadImage(
-                            base64Image,
-                            function (canvas) {
-                                resolveImage(canvas.toDataURL(), ori);
-                            }, {
-                                canvas: true,
-                                orientation: ori
-                            }
-                        );
-                    });
-
-
+                    processFile(base64Image, file.type);
                 }
                 reader.onerror = function () {
                     self.photoArea.addClass('photo--error');
@@ -576,16 +558,14 @@
 
             if (frameRatio > imageRatio) {
                 newHeight = self.model.cropHeight;
-                scaleRatio = (newHeight / self.model.height).toFixed(2);
-                newWidth = self.model.width * scaleRatio;
+                scaleRatio = Math.round((newHeight / self.model.height) * 100) / 100;
+                newWidth = parseFloat(self.model.width) * scaleRatio;
             } else {
                 newWidth = self.model.cropWidth;
-                scaleRatio = (newWidth / self.model.width).toFixed(2);
-                newHeight = self.model.height * scaleRatio;
+                scaleRatio = Math.round((newWidth / self.model.width) * 100) / 100;
+                newHeight = parseFloat(self.model.height) * scaleRatio;
             }
             self.model.zoom = scaleRatio;
-
-            alert(newWidth + ' ' + newHeight);
 
             self.zoomControl
                 .attr('min', scaleRatio)
@@ -622,7 +602,8 @@
         /**
          * Return the image cropped as Base64 data URL
          */
-        function getAsDataUrl() {
+        function getAsDataURL(quality) {
+            if(!quality) { quality = 1; }
             var img = new Image();
             img.src = self.model.imageSrc;
             img.width = self.model.width + "px";
@@ -633,8 +614,8 @@
             canvas.width = self.model.cropWidth;
             canvas.height = self.model.cropHeight;
             ctx.drawImage(img, self.model.x, self.model.y, self.model.width, self.model.height);
-            return canvas.toDataURL();
+            return canvas.toDataURL(quality);
         }
     }
-})(window, jQuery, loadImage);
+})(window, jQuery);
 

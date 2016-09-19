@@ -44,13 +44,15 @@
         </div>
     </div>
 
-    <img src="" alt="" id="test">
+    <hr>
+    <button type="button" id="previewBtn">Preview</button>
+    <hr>
+    <img src="" alt="" id="preview">
 
     <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
     <script>
         window.jQuery || document.write('<script src="vendor/jquery/jquery.min.js"><\/script>')
     </script>
-    <script src="vendor/blueimp/load-image.all.min.js"></script>
     <script src="scripts/profile-picture.js"></script>
     <script>
     /**
@@ -66,9 +68,12 @@
             }
         });
 
+    $('#previewBtn').on('click', function() {
+        $('#preview').attr('src',pp.getAsDataURL());  
+    });
 
     function printOutput(data) {
-        console.log(data);
+        //console.log(data);
     }
     </script>
 </body>

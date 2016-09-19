@@ -101,6 +101,13 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 ```
     pp.getData();
 ```
+### getAsDataURL
+> Public method to return the base64 image format.
+> @param quality 0.1-1. Default: 1
+
+```
+    pp.getAsDataURL(quality);
+```
 
 ### removeImage
 > Public method to remove the image.
