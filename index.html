@@ -7,6 +7,17 @@
     <link rel="stylesheet" href="vendor/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="assets/css/profile-picture.css">
     <meta name="viewport" content="width=device-width">
+    <style>
+        .preview {
+            margin: 10px;
+            display: none;
+        }
+        .preview--rounded {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+        }
+    </style>
 </head>
 
 <body>
@@ -49,7 +60,8 @@
     <hr>
     <button type="button" id="previewBtn">Preview</button>
     <hr>
-    <img src="" alt="" id="preview">
+    <img src="" alt="" class="preview">
+    <img src="" alt="" class="preview preview--rounded">
 
     <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
     <script>
@@ -62,16 +74,20 @@
      */ 
     var pp = new profilePicture('.profile', 'sample.jpeg',
         {
-            onLoad: printOutput,
+            onLoad: function (type) {
+                $('.preview').hide().attr('src','');
+            },
             onChange: printOutput,
-            onRemove: printOutput,
+            onRemove: function (type) {
+                $('.preview').hide().attr('src','');
+            },
             onError: function (type) {
                 console.log('Error type: ' + type);
             }
         });
 
     $('#previewBtn').on('click', function() {
-        $('#preview').attr('src',pp.getAsDataURL());  
+        $('.preview').show().attr('src',pp.getAsDataURL());  
     });
 
     function printOutput(data) {
