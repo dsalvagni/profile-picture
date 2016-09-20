@@ -673,7 +673,6 @@
             self.imageHelperCanvas = canvas;
             self.imageHelperCanvasContext = canvas.getContext('2d');
             self.imageHelperCanvasContext.mozImageSmoothingEnabled = false;
-            self.imageHelperCanvasContext.webkitImageSmoothingEnabled = false;
             self.imageHelperCanvasContext.msImageSmoothingEnabled = false;
             self.imageHelperCanvasContext.imageSmoothingEnabled = false;
         }
