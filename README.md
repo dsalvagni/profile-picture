@@ -32,6 +32,7 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 ## Options
 
 ### Slider options
+> slider: {}
 
 #### initialValue
 > Slider's handler initial position
@@ -43,6 +44,7 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 > When the slider's handles is on its maximum position
 
 ### Image options
+> image: {}
 
 #### minWidth
 > Set the minimum image's width size acceptable
@@ -62,6 +64,13 @@ var pp = profilePicture(cssSelector, imageUrl?, options?);
 #### originalTop
 > Define the original image's top offset
 
+## Image helper
+
+## imageHelper
+> Enable/Disable the image helper
+
+## imageHelperBackground
+> Set the image helper overlay
 
 ## Callbacks
 
