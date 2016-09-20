@@ -154,7 +154,14 @@
   position: relative;
   background-repeat: no-repeat;
   background-color: transparent;
-  padding: 15px;
+  padding: 15px 0;
+}
+.photo__helper .canvas--helper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 .photo__frame img,
 .photo__helper {
@@ -204,8 +211,6 @@
 }
 .photo__frame {
   cursor: move;
-}
-.photo__frame {
   overflow: hidden;
   position: relative;
   display: inline-block;

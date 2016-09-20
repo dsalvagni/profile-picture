@@ -54,6 +54,8 @@
          * Plugins defaults
          */
         self.defaults = {};
+        self.defaults.imageHelper = true;
+        self.defaults.imageHelperColor = 'rgba(255,255,255,.90)';
         /**
          * Callbacks
          */
@@ -123,29 +125,41 @@
             /**
              * Show the right text
              */
-            if(isMobile()) {
+            if (isMobile()) {
                 self.photoArea.addClass('is-mobile');
             } else {
                 self.photoArea.addClass('is-desktop');
             }
+            /**
+             * Merge the defaults with the user options
+             */
+            self.options = $.extend({}, self.defaults, options);
 
+            /**
+             * Enable/disable the image helper
+             */
+            if (self.options.imageHelper) {
+                registerImageHelper();
+            }
+
+            registerDropZoneEvents();
+            registerImageDragEvents();
+            registerZoomEvents();
+
+            /**
+             * Start
+             */
             if (imageFilePath) {
                 processFile(imageFilePath);
             } else {
                 self.photoArea.addClass('photo--empty');
             }
-
-            self.options = $.extend({}, self.defaults, options);
-
-            registerDropZoneEvents();
-            registerImageDragEvents();
-            registerZoomEvents();
         }
 
         /**
          * Check if the user's device is a smartphone/tablet
          */
-        function isMobile() {           
+        function isMobile() {
             return navigator.userAgent.match(/BlackBerry|Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i);
         }
 
@@ -247,7 +261,8 @@
             self.canvasContext.clearRect(0, 0, self.model.cropWidth, self.model.cropHeight);
             self.canvasContext.save();
             self.photoArea.addClass('photo--empty');
-            self.photoHelper.attr('style', '');
+            self.imageHelperCanvasContext.clearRect(0, 0, self.imageHelperCanvas.width,self.imageHelperCanvas.height);
+            self.imageHelperCanvasContext.save();
             setModel({});
 
             /**
@@ -365,14 +380,14 @@
          * Register the image drag events
          */
         function registerImageDragEvents() {
-            var $dragging, x, y, frameX, frameY, clientX, clientY;
-
-            frameX = self.photoFrame.offset().left;
-            frameY = self.photoFrame.offset().top;
-            /**
-             * Get the image info
-             */
-            self.photoHelper.on("mousedown touchstart", dragStart);
+            var $dragging, x, y, clientX, clientY;
+            if(self.options.imageHelper) {
+                self.photoHelper.on("mousedown touchstart", dragStart)
+                    .css('cursor','move');
+            } else {
+                self.photoFrame.on("mousedown touchstart", dragStart);
+            }
+            
             /**
              * Stop dragging
              */
@@ -556,12 +571,12 @@
             /**
              * Updates the zoom icon state
              */
-            if (self.model.zoom == self.zoomControl.attr('min')) {
+            if (self.model.zoom.toFixed(2) == Number(self.zoomControl.attr('min')).toFixed(2)) {
                 self.zoomControl.addClass('zoom--minValue');
             } else {
                 self.zoomControl.removeClass('zoom--minValue');
             }
-            if (self.model.zoom == self.zoomControl.attr('max')) {
+            if (self.model.zoom.toFixed(2) == Number(self.zoomControl.attr('max')).toFixed(2)) {
                 self.zoomControl.addClass('zoom--maxValue');
             } else {
                 self.zoomControl.removeClass('zoom--maxValue');
@@ -607,7 +622,10 @@
             self.canvasContext.globalCompositeOperation = "destination-over";
             self.canvasContext.drawImage(self.model.imageSrc, self.model.x, self.model.y, self.model.width, self.model.height);
             self.canvasContext.restore();
-            //updateHelper();
+
+            if (self.options.imageHelper) {
+                updateHelper();
+            }
             /**
              * Call the onChange callback
              */
@@ -615,21 +633,50 @@
                 self.options.onChange(self.model);
             }
         }
-        
+
         /**
          * Updates the image helper attributes
          */
         function updateHelper() {
-            var backgroundX = self.model.x + self.photoFrame.position().left;
-            var backgroundY = self.model.y + self.photoFrame.position().top;
-            self.photoHelper
-                .css({
-                    'background-image': 'linear-gradient(rgba(255,255,255,.85), rgba(255,255,255,.85)), url(' + self.model.imageSrc.src + ')',
-                    'background-position': backgroundX + 'px ' + backgroundY + 'px',
-                    'background-size': self.model.width + 'px ' + self.model.height + 'px '
-                });
+            var x = self.model.x + self.photoFrame.position().left;
+            var y = self.model.y + self.photoFrame.position().top;
+            /**
+             * Clear
+             */
+            self.imageHelperCanvasContext.clearRect(0, 0, self.imageHelperCanvas.width, self.imageHelperCanvas.height);
+            self.imageHelperCanvasContext.save();
+            self.imageHelperCanvasContext.globalCompositeOperation = "destination-over";
+            /**
+             * Draw the helper
+             */
+            self.imageHelperCanvasContext.beginPath();
+            self.imageHelperCanvasContext.rect(0,0,self.imageHelperCanvas.width, self.imageHelperCanvas.height);
+            self.imageHelperCanvasContext.fillStyle = self.options.imageHelperColor;
+            self.imageHelperCanvasContext.fill('evenodd');
+            /**
+             * Draw the image
+             */
+            self.imageHelperCanvasContext.drawImage(self.model.imageSrc, x, y, self.model.width, self.model.height);
+            self.imageHelperCanvasContext.restore();
         }
+        /**
+         * Creates the canvas for the image helper
+         */
+        function registerImageHelper() {
+            var canvas = document.createElement('canvas');
+            canvas.className = "canvas--helper";
+            canvas.width = self.photoHelper.outerWidth();
+            canvas.height = self.photoHelper.outerHeight();
 
+            self.photoHelper.prepend(canvas);
+
+            self.imageHelperCanvas = canvas;
+            self.imageHelperCanvasContext = canvas.getContext('2d');
+            self.imageHelperCanvasContext.mozImageSmoothingEnabled = false;
+            self.imageHelperCanvasContext.webkitImageSmoothingEnabled = false;
+            self.imageHelperCanvasContext.msImageSmoothingEnabled = false;
+            self.imageHelperCanvasContext.imageSmoothingEnabled = false;
+        }
         /**
          * Return the image cropped as Base64 data URL
          */
