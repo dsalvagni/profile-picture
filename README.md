@@ -1,6 +1,6 @@
 # Profile picture
 
-[Demo version](http://www.dsalvagni.com.br/profile-picture) | [Codepen](http://codepen.io/dsalvagni/pen/BLapab)
+[Codepen](http://codepen.io/dsalvagni/pen/BLapab)
 
 ## Screenshots
 ![Screen 1](screen1.gif) ![Screen 2](screen2.gif)
